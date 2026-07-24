@@ -2,7 +2,7 @@ Status Card — Vollständige Referenz (v3.2.4)
 1. Alle Konfigurationsoptionen
 Top-Level
 Property	Typ	Default	Beschreibung
-type	string	(required)	custom:status-card
+type	string	(required)	custom:status-card-delayed
 columns	number (1-4)	4	Spalten im Popup
 hide_person	boolean	false	Person-Entitys ausblenden
 list_mode	boolean	false	Textlisten-Modus
@@ -123,7 +123,7 @@ Alle Labels werden dynamisch via hass.localize() erzeugt. Entity-State-Übersetz
 6. CSS-Animationen (in card-styles.ts verfügbar)
 spin, pulse, shake, blink, bounce — nutzbar in styles.icon oder styles.button
 7. Beispiel-YAML
-type: custom:status-card
+type: custom:status-card-delayed
 columns: 3
 badge_mode: true
 badge_color: red

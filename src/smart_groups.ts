@@ -249,7 +249,7 @@ function match(actual: unknown, expected: unknown): boolean {
       const regex = new RegExp(expected.slice(1, -1), "i");
       return regex.test(String(actual));
     } catch (e) {
-      console.debug("status-card: Invalid regex pattern:", expected, e);
+      console.debug("status-card-delayed: Invalid regex pattern:", expected, e);
       return false;
     }
   }

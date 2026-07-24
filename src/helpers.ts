@@ -276,7 +276,7 @@ export function createCardElementSynchronous(
       return el;
     }
   } catch (e) {
-    console.debug("status-card: Failed to create card element via customElements", e);
+    console.debug("status-card-delayed: Failed to create card element via customElements", e);
   }
 
   if (cachedHelpers?.createCardElement) {
@@ -288,7 +288,7 @@ export function createCardElementSynchronous(
       el.setAttribute?.("data-hui-card", "");
       return el;
     } catch (e) {
-      console.debug("status-card: Failed to create card element via helpers", e);
+      console.debug("status-card-delayed: Failed to create card element via helpers", e);
       return undefined;
     }
   }
@@ -313,7 +313,7 @@ export async function createCardElement(
       return el;
     }
   } catch (e) {
-    console.debug("status-card: Failed to load card helpers", e);
+    console.debug("status-card-delayed: Failed to load card helpers", e);
   }
 
   try {
@@ -335,7 +335,7 @@ export async function createCardElement(
     el.setAttribute?.("data-hui-card", "");
     return el;
   } catch (e) {
-    console.debug("status-card: Failed to create card element for type:", cardConfig.type, e);
+    console.debug("status-card-delayed: Failed to create card element for type:", cardConfig.type, e);
     if (!isFallback) {
       return createCardElement(hass, toTileConfig(cardConfig), true);
     }
@@ -350,6 +350,6 @@ export async function ensureHelpersLoaded(): Promise<void> {
   try {
     cachedHelpers = await window.loadCardHelpers?.();
   } catch (e) {
-    console.debug("status-card: Failed to load card helpers", e);
+    console.debug("status-card-delayed: Failed to load card helpers", e);
   }
 }

@@ -30,7 +30,7 @@ Compact display: icon + badge count instead of a full content item. Badge mode i
 ## YAML Example
 
 ```yaml
-type: custom:status-card
+type: custom:status-card-delayed
 badge_mode: true
 badge_color: red
 badge_text_color: white

@@ -62,10 +62,10 @@ hide:
     <section class="hero-preview-section">
       <div class="hero-preview-grid">
         <div class="hero-preview-card reveal" style="transition-delay: 0.1s;">
-          <img src="./img/status-card-light.png" alt="Status Card preview light theme" loading="lazy">
+          <img src="./img/status-card-delayed-light.png" alt="Status Card preview light theme" loading="lazy">
         </div>
         <div class="hero-preview-card reveal" style="transition-delay: 0.25s;">
-          <img src="./img/status-card-dark.png" alt="Status Card preview dark theme" loading="lazy">
+          <img src="./img/status-card-delayed-dark.png" alt="Status Card preview dark theme" loading="lazy">
         </div>
       </div>
     </section>
@@ -162,7 +162,7 @@ hide:
 <h2 class="support-heading">Let's keep in touch</h2>
 
 <ul class="support-links" markdown="1">
-  <li markdown="1">[:simple-github:{ .support-link-icon } Status Card on **GitHub**](https://github.com/xBourner/status-card){ .support-link }</li>
+  <li markdown="1">[:simple-github:{ .support-link-icon } Status Card on **GitHub**](https://github.com/Mlody33/status-card-delayed){ .support-link }</li>
   <li markdown="1">[:simple-discord:{ .support-link-icon } Status Card on **Discord**](https://discord.gg/RvwE65hJ){ .support-link }</li>
   <li markdown="1" style="margin-top: 1.5rem;">[:simple-paypal:{ .support-link-icon } Status Card on **PayPal**](https://www.paypal.me/gibgas123){ .support-link }</li>
   <li markdown="1">[:simple-buymeacoffee:{ .support-link-icon } Status Card on **Buy Me a Coffee**](https://www.buymeacoffee.com/bourner){ .support-link }</li>

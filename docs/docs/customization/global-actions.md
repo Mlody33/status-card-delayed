@@ -29,7 +29,7 @@ Actions that apply to all domains and device classes (can be overridden per item
 ## YAML Example
 
 ```yaml
-type: custom:status-card
+type: custom:status-card-delayed
 tap_action:
   action: toggle
 hold_action:

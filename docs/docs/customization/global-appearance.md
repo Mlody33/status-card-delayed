@@ -36,7 +36,7 @@ Determines the orientation of items in the card. Default layout is vertical.
 ## YAML Example
 
 ```yaml
-type: custom:status-card
+type: custom:status-card-delayed
 hide_content_name: false
 show_total_number: true
 square: true

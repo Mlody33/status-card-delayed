@@ -23,7 +23,7 @@ interface ActionHandlerElement extends HTMLElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "action-handler-status-card": ActionHandler;
+    "action-handler-status-card-delayed": ActionHandler;
   }
   interface HASSDomEvents {
     action: ActionHandlerDetail;
@@ -178,18 +178,18 @@ class ActionHandler extends HTMLElement implements ActionHandlerType {
   }
 }
 
-customElements.define("action-handler-status-card", ActionHandler);
+customElements.define("action-handler-status-card-delayed", ActionHandler);
 
 const getActionHandler = (): ActionHandlerType => {
   const body = document.body;
-  if (body.querySelector("action-handler-status-card")) {
+  if (body.querySelector("action-handler-status-card-delayed")) {
     return body.querySelector(
-      "action-handler-status-card"
+      "action-handler-status-card-delayed"
     ) as ActionHandlerType;
   }
 
   const actionhandler = document.createElement(
-    "action-handler-status-card"
+    "action-handler-status-card-delayed"
   );
   body.appendChild(actionhandler);
 

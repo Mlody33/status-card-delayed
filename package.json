@@ -1,5 +1,5 @@
 {
-  "name": "status-card",
+  "name": "status-card-delayed",
   "version": "v3.3",
   "type": "module",
   "devDependencies": {

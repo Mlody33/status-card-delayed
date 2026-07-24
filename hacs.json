@@ -1,7 +1,7 @@
 {
-  "name": "status-card",
+  "name": "status-card-delayed",
   "content_in_root": false,
   "render_readme": true,
-  "filename": "status-card.js",
+  "filename": "status-card-delayed.js",
   "homeassistant": "2026.3.0"
 }

@@ -9,7 +9,7 @@ hide:
 
 # ⚙️ Configuration & Usage
 
-Once the Status Card is installed, setting it up is a breeze.
+Once the Status Card Delayed is installed, setting it up is a breeze.
 
 !!! info "Main Requirement"
     The card is based on your Home Assistant areas. You must assign your relevant devices and entities to your **areas** beforehand for the card to work.
@@ -22,7 +22,7 @@ The visual editor is the easiest way to configure the card. No YAML knowledge is
 
 1. Open your dashboard and click **Edit Dashboard**.
 2. Click **Add Card**.
-3. Search for **Status Card**.
+3. Search for **Status Card Delayed**.
 4. The GUI editor will guide you through all available options.
 
 You can customize domains, hide entities, define popups, and add custom CSS—all directly from the user interface.
@@ -31,12 +31,12 @@ You can customize domains, hide entities, define popups, and add custom CSS—al
 
 ## YAML Configuration (For Pros)
 
-For those who prefer editing their dashboard in code, the Status Card naturally supports YAML too.
+For those who prefer editing their dashboard in code, the Status Card Delayed naturally supports YAML too.
 
 ### Basic Example
 
 ```yaml
-type: custom:status-card
+type: custom:status-card-delayed
 columns: 4
 hide_person: false
 list_mode: false
@@ -61,7 +61,7 @@ content:
 ### Full YAML Settings
 
 ```yaml
-type: custom:dev-status-card
+type: custom:dev-status-card-delayed
 hide_person: false  # hide person entities in card
 list_mode: false  # enable buk mode for accessing entities as text you can copy (easy to add hidden_entities)
 hide_content_name: false  # hide names for domains/device classes/exta entities

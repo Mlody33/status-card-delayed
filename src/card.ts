@@ -29,6 +29,7 @@ import {
   EntityRegistryEntry,
   DeviceRegistryEntry,
   AreaRegistryEntry,
+  LovelaceCard,
 } from "./ha";
 import {
   computeExtraItems,
@@ -47,6 +48,7 @@ import {
   GroupItem,
   StatusCardLike,
   StatusCardPopupDialogParams,
+  CardElementCache,
 } from "./ha/types";
 import {
   filterEntitiesByRuleset,
@@ -68,8 +70,13 @@ import {
 } from "./card-styles";
 import { handleDomainAction, toggleDomain } from "./card-actions";
 import { mdiFormatListGroup } from "@mdi/js";
+import { DOMAIN_FEATURES } from "./const";
+import {
+  createCardElement,
+  createCardElementSynchronous,
+} from "./helpers";
 
-@customElement("status-card")
+@customElement("status-card-delayed")
 export class StatusCard extends LitElement {
   @property({ type: Object }) public _config!: LovelaceCardConfig;
   @state() private entitiesByDomain: { [domain: string]: HassEntity[] } = {};
@@ -101,6 +108,7 @@ export class StatusCard extends LitElement {
   @state() private _parsedGlobalStateCss: Record<string, string> = {};
   private _resetDomainTimeout?: ReturnType<typeof setTimeout>;
   private _resetGroupTimeout?: ReturnType<typeof setTimeout>;
+  private _inlineCardElementCache = new Map<string, CardElementCache>();
 
   private _ensureRegistryData(): void {
     if (
@@ -541,7 +549,7 @@ export class StatusCard extends LitElement {
           )
         : false;
 
-    const dialogTag = "status-card-popup";
+    const dialogTag = "status-card-delayed-popup";
     this._showPopup(this, dialogTag, {
       title,
       hass: this.hass,
@@ -562,6 +570,7 @@ export class StatusCard extends LitElement {
     super.disconnectedCallback();
     clearTimeout(this._resetDomainTimeout);
     clearTimeout(this._resetGroupTimeout);
+    this._inlineCardElementCache.clear();
   }
 
   protected willUpdate(changedProps: PropertyValues): void {
@@ -866,10 +875,10 @@ export class StatusCard extends LitElement {
     const badgeTextColor =
       customization?.badge_text_color || this.badge_text_color || undefined;
     const badgeStyles = {
-      "--status-card-badge-color": badgeColor
+      "--status-card-delayed-badge-color": badgeColor
         ? `var(--${badgeColor}-color)`
         : undefined,
-      "--status-card-badge-text-color": badgeTextColor
+      "--status-card-delayed-badge-text-color": badgeTextColor
         ? `var(--${badgeTextColor}-color)`
         : undefined,
     };
@@ -1089,6 +1098,151 @@ export class StatusCard extends LitElement {
     `;
   }
 
+  private _getGroupEntities(ruleset: Ruleset): HassEntity[] {
+    const candidatesMap = this._computeGroupCandidatesMemo(
+      this._config.rulesets || [],
+      this.__registryEntities,
+      this.__registryDevices,
+      this.__registryAreas,
+      this.hiddenEntities,
+    );
+    return (
+      this._computeGroupResultsMemo(
+        candidatesMap,
+        this.hass.states,
+        this._config.rulesets || [],
+        this.__registryEntities,
+        this.__registryDevices,
+        this.__registryAreas,
+      ).get(ruleset.group_id) || []
+    );
+  }
+
+  private _getInlineCardConfig(
+    groupId: string,
+    entity: HassEntity,
+  ): LovelaceCardConfig {
+    const groupCustomization = this.getCustomizationForType(groupId);
+    if (groupCustomization?.popup_card) {
+      return {
+        ...groupCustomization.popup_card,
+        entity: entity.entity_id,
+      } as LovelaceCardConfig;
+    }
+
+    const domain = computeDomain(entity.entity_id);
+    const deviceClass = entity.attributes.device_class;
+    const customization = this.getCustomizationForType(
+      typeKey(domain, deviceClass),
+    );
+    const popupCard = customization?.popup_card;
+    const resolvedType =
+      popupCard && typeof popupCard.type === "string"
+        ? popupCard.type
+        : "tile";
+    const baseOptions =
+      resolvedType === "tile" ? DOMAIN_FEATURES[domain] ?? {} : {};
+    const overrideOptions =
+      popupCard && typeof popupCard === "object"
+        ? Object.fromEntries(
+            Object.entries(popupCard).filter(
+              ([key]) => key !== "type" && key !== "entity",
+            ),
+          )
+        : {};
+
+    return {
+      type: resolvedType,
+      entity: entity.entity_id,
+      ...baseOptions,
+      ...overrideOptions,
+    } as LovelaceCardConfig;
+  }
+
+  private _getOrCreateInlineCard(
+    groupId: string,
+    entity: HassEntity,
+  ): HTMLElement {
+    const cacheKey = `${groupId}:${entity.entity_id}`;
+    const config = this._getInlineCardConfig(groupId, entity);
+    const hash = JSON.stringify(config);
+    const cached = this._inlineCardElementCache.get(cacheKey);
+
+    if (cached?.hash === hash) {
+      (cached.el as LovelaceCard).hass = this.hass;
+      return cached.el;
+    }
+
+    const synchronous = createCardElementSynchronous(this.hass, config);
+    if (synchronous) {
+      (synchronous as LovelaceCard).hass = this.hass;
+      this._inlineCardElementCache.set(cacheKey, {
+        hash,
+        el: synchronous,
+      });
+      return synchronous;
+    }
+
+    const placeholder = document.createElement("div");
+    placeholder.classList.add("inline-card-placeholder");
+    this._inlineCardElementCache.set(cacheKey, { hash, el: placeholder });
+    createCardElement(this.hass, config)
+      .then((element) => {
+        const current = this._inlineCardElementCache.get(cacheKey);
+        if (current?.el !== placeholder || current.hash !== hash) return;
+        (element as LovelaceCard).hass = this.hass;
+        placeholder.replaceWith(element);
+        this._inlineCardElementCache.set(cacheKey, { hash, el: element });
+      })
+      .catch((error) => {
+        console.debug(
+          "status-card-delayed: Failed to create inline card for entity:",
+          entity.entity_id,
+          error,
+        );
+      });
+    return placeholder;
+  }
+
+  private renderInlineGroup(item: GroupItem): TemplateResult {
+    const { ruleset } = item;
+    const entities = this._getGroupEntities(ruleset);
+    if (!entities.length) return html``;
+
+    const customization = this.getCustomizationForType(ruleset.group_id);
+    const columns = Math.max(
+      1,
+      Number(customization?.columns ?? this._config.columns ?? 4),
+    );
+
+    return html`
+      <section class="inline-group">
+        <div class="inline-group-header">
+          <span>${ruleset.group_id}</span>
+          <span class="inline-group-count">
+            ${entities.length}${ruleset.group_status
+              ? ` ${ruleset.group_status}`
+              : ""}
+          </span>
+        </div>
+        <div
+          class="inline-group-entities"
+          style=${styleMap({ "--inline-group-columns": String(columns) })}
+        >
+          ${repeat(
+            entities,
+            (entity) => entity.entity_id,
+            (entity) => html`
+              <div class="inline-entity-card">
+                ${this._getOrCreateInlineCard(ruleset.group_id, entity)}
+              </div>
+            `,
+          )}
+        </div>
+      </section>
+    `;
+  }
+
   private renderItemTab(item: DomainItem | DeviceClassItem): TemplateResult {
     const domain = item.domain;
     const deviceClass = (item as DeviceClassItem).deviceClass;
@@ -1229,7 +1383,7 @@ export class StatusCard extends LitElement {
 
     const sorted = this._computeSortedEntities(
       extra,
-      group,
+      [],
       domain,
       deviceClass,
     );
@@ -1290,10 +1444,10 @@ export class StatusCard extends LitElement {
                     ? html`<div
                         class="person-badge"
                         style=${styleMap({
-                          "--status-card-badge-color": badgeColor
+                          "--status-card-delayed-badge-color": badgeColor
                             ? `var(--${badgeColor}-color)`
                             : undefined,
-                          "--status-card-badge-text-color": this
+                          "--status-card-delayed-badge-text-color": this
                             .badge_text_color
                             ? `var(--${this.badge_text_color}-color)`
                             : undefined,
@@ -1365,6 +1519,11 @@ export class StatusCard extends LitElement {
             (i) => this.renderTab(i),
           )}
         </ha-tab-group>
+        ${repeat(
+          group,
+          (item) => item.group_id,
+          (item) => this.renderInlineGroup(item),
+        )}
       </ha-card>
     `;
   }
@@ -1374,7 +1533,7 @@ export class StatusCard extends LitElement {
   }
 
   static getConfigElement() {
-    return document.createElement("status-card-editor");
+    return document.createElement("status-card-delayed-editor");
   }
 
   static getStubConfig() {

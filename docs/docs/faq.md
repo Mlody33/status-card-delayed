@@ -8,7 +8,7 @@ hide:
 
 # ❓ FAQ
 
-Please read the FAQ before opening an issue. If your question isn't answered here you can open an issue [here](https://github.com/xBourner/status-card/issues).
+Please read the FAQ before opening an issue. If your question isn't answered here you can open an issue [here](https://github.com/Mlody33/status-card-delayed/issues).
 
 !!! info "Attention"
     Issues with a question will be closed with a link to this page. New FAQs will be added frequently.

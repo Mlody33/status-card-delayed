@@ -6,7 +6,7 @@ export default defineConfig({
     lib: {
       // Entspricht deinem Webpack-Entry
       entry: path.resolve(__dirname, "src/index.ts"),
-      fileName: () => "status-card.js", // Output-Dateiname
+      fileName: () => "status-card-delayed.js", // Output-Dateiname
       formats: ["es"], // Home Assistant braucht ES-Module
     },
     outDir: "dist", // Entspricht Webpack output.path

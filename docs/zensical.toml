@@ -2,8 +2,8 @@
 site_name = "Status Card Docs"
 site_description = "A powerful custom card for Home Assistant Dashboards"
 site_url = "https://status-card.docs"
-repo_url = "https://github.com/xBourner/status-card"
-repo_name = "xBourner/status-card"
+repo_url = "https://github.com/Mlody33/status-card-delayed"
+repo_name = "Mlody33/status-card-delayed"
 extra_css = ["stylesheet/extra.css"]
 extra_javascript = ["javascripts/hero-animation.js"]
 copyright = "Copyright &copy; <script>document.write(new Date().getFullYear())</script> xBourner"
@@ -60,7 +60,7 @@ toggle.name = "Switch to light mode"
 
 [[project.extra.social]]
 icon = "fontawesome/brands/github"
-link = "https://github.com/xBourner/status-card"
+link = "https://github.com/Mlody33/status-card-delayed"
 
 [[project.extra.social]]
 icon = "fontawesome/brands/discord"

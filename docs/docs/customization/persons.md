@@ -46,7 +46,7 @@ Automatically detects all `person.*` entities from the HA entity registry. At de
 ## YAML Example
 
 ```yaml
-type: custom:status-card
+type: custom:status-card-delayed
 hide_person: false
 person_home_color: green
 person_away_color: red

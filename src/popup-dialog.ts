@@ -103,7 +103,7 @@ export class StatusCardPopup extends LitElement {
       try {
         await customElements.whenDefined("hui-tile-card");
       } catch (e) {
-        console.debug("status-card: hui-tile-card not defined", e);
+        console.debug("status-card-delayed: hui-tile-card not defined", e);
       }
     }
     this.requestUpdate();
@@ -315,7 +315,7 @@ export class StatusCardPopup extends LitElement {
         try {
           (el as LovelaceCard).hass = this.hass;
         } catch (e) {
-          console.debug("status-card: Failed to set hass on card element", e);
+          console.debug("status-card-delayed: Failed to set hass on card element", e);
         }
       }
     });
@@ -356,7 +356,7 @@ export class StatusCardPopup extends LitElement {
         }
         (el as LovelaceCard).hass = this.hass;
       } catch (e) {
-        console.debug("status-card: Failed to create popup card for entity:", id, e);
+        console.debug("status-card-delayed: Failed to create popup card for entity:", id, e);
       }
     });
     this._cardElementCache.set(id, { hash, el: placeholder });
@@ -435,7 +435,7 @@ export class StatusCardPopup extends LitElement {
   }
 
   private handleAskToggleDomain() {
-    const dialogTag = "status-card-popup-confirmation";
+    const dialogTag = "status-card-delayed-popup-confirmation";
     this.dispatchEvent(
       new CustomEvent("show-dialog", {
         detail: {
@@ -1089,7 +1089,7 @@ export class StatusCardPopup extends LitElement {
 }
 
 
-customElements.define("status-card-popup", StatusCardPopup);
+customElements.define("status-card-delayed-popup", StatusCardPopup);
 
 class StatusCardPopupConfirmation extends LitElement {
   @property({ type: Boolean }) public open = false;
@@ -1152,7 +1152,7 @@ class StatusCardPopupConfirmation extends LitElement {
     try {
       this.card?.toggleDomain?.(this.selectedDomain, this.selectedDeviceClass);
     } catch (e) {
-      console.debug("status-card: Failed to toggle domain", e);
+      console.debug("status-card-delayed: Failed to toggle domain", e);
     }
     this._close();
   };
@@ -1214,6 +1214,6 @@ class StatusCardPopupConfirmation extends LitElement {
 }
 
 customElements.define(
-  "status-card-popup-confirmation",
+  "status-card-delayed-popup-confirmation",
   StatusCardPopupConfirmation
 );

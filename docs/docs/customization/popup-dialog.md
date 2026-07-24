@@ -28,7 +28,7 @@ Some settings also affect the pop-up settings, even though they are primarily in
 This is done withe the 'Enable Total Entities' setting. It will show all entities no matter the state.
 
 ```yaml
-type: custom:status-card
+type: custom:status-card-delayed
 show_total_entities: true
 ```
 
@@ -66,7 +66,7 @@ customization:
 ## YAML Example
 
 ```yaml
-type: custom:status-card
+type: custom:status-card-delayed
 columns: 3
 popup_sort: name|state
 ungroup_areas: false

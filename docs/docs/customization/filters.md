@@ -33,7 +33,7 @@ All filters can be set to one or more options, and they work together (e.g. one 
 ## YAML Example
 
 ```yaml
-type: custom:status-card
+type: custom:status-card-delayed
 label_filter: true
 filter: area|floor
 multiple_areas: true

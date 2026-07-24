@@ -71,7 +71,7 @@ Allowed Domains with their default toggle actions:
 ## YAML Example
 
 ```yaml
-type: custom:status-card
+type: custom:status-card-delayed
 content:
   - light
   - switch

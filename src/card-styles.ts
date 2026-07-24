@@ -181,8 +181,8 @@ export const cardStyles = css`
     min-width: 20px;
     height: 20px;
     border-radius: 10px;
-    background-color: var(--status-card-badge-color, var(--primary-color));
-    color: var(--status-card-badge-text-color, var(--text-primary-color));
+    background-color: var(--status-card-delayed-badge-color, var(--primary-color));
+    color: var(--status-card-delayed-badge-text-color, var(--text-primary-color));
     font-size: 0.75rem;
     font-weight: bold;
     display: flex;
@@ -200,8 +200,8 @@ export const cardStyles = css`
     min-width: 20px;
     height: 20px;
     border-radius: 10px;
-    background-color: var(--status-card-badge-color, var(--primary-color));
-    color: var(--status-card-badge-text-color, var(--text-primary-color));
+    background-color: var(--status-card-delayed-badge-color, var(--primary-color));
+    color: var(--status-card-delayed-badge-text-color, var(--text-primary-color));
     font-size: 0.75rem;
     font-weight: bold;
     display: flex;
@@ -237,6 +237,44 @@ export const cardStyles = css`
   .entity-state {
     color: var(--secondary-text-color);
     font-size: 0.9em;
+  }
+  .inline-group {
+    padding: 8px 12px 12px;
+  }
+  .inline-group + .inline-group {
+    border-top: 1px solid var(--divider-color);
+  }
+  .inline-group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .inline-group-count {
+    color: var(--secondary-text-color);
+    font-size: 0.9em;
+    font-weight: 400;
+  }
+  .inline-group-entities {
+    display: grid;
+    grid-template-columns: repeat(
+      var(--inline-group-columns, 4),
+      minmax(0, 1fr)
+    );
+    gap: 8px;
+  }
+  .inline-entity-card {
+    min-width: 0;
+  }
+  .inline-card-placeholder {
+    min-height: 56px;
+  }
+  @media (max-width: 600px) {
+    .inline-group-entities {
+      grid-template-columns: 1fr;
+    }
   }
   @keyframes spin {
     from {

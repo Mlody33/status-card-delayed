@@ -27,7 +27,7 @@ The 'Edit Content' Tab will let you choose which content you want to see. You ca
 ## YAML Example
 
 ```yaml
-type: custom:status-card
+type: custom:status-card-delayed
 content:
   - sun.sun
   - Low Batteries
