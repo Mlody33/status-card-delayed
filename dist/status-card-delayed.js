@@ -1718,6 +1718,7 @@ const Po = {
   show_total_entities: (e) => `${e.localize("ui.common.enable")} ${e.localize(
     "component.sensor.entity_component._.state_attributes.state_class.state.total"
   )} ${e.localize("ui.panel.lovelace.editor.card.entities.name")}`,
+  sort_entities: () => "Sort entities by activation time",
   appearance: (e) => e.localize("ui.panel.lovelace.editor.card.tile.appearance") || "Appearance",
   tap_action: (e) => e.localize("ui.panel.lovelace.editor.card.generic.tap_action"),
   hold_action: (e) => e.localize("ui.panel.lovelace.editor.card.generic.hold_action"),
@@ -3390,7 +3391,7 @@ var nn = Object.defineProperty, an = Object.getOwnPropertyDescriptor, w = (e, t,
 };
 let $ = class extends R {
   constructor() {
-    super(...arguments), this.entitiesByDomain = {}, this.selectedDomain = null, this.selectedDeviceClass = null, this.hiddenEntities = [], this.hiddenLabels = [], this.hiddenAreas = [], this.hide_person = !1, this.hide_content_name = !0, this.list_mode = !1, this.badge_mode = !1, this.no_background = !1, this.badge_color = "", this.badge_text_color = "", this.selectedGroup = null, this._shouldHideCard = !1, this.__registryEntities = [], this.__registryDevices = [], this.__registryAreas = [], this.__registryFetchInProgress = !1, this._parsedGlobalCss = {}, this._parsedGlobalIconCss = {}, this._parsedGlobalCardCss = {}, this._parsedGlobalNameCss = {}, this._parsedGlobalStateCss = {}, this._inlineCardElementCache = /* @__PURE__ */ new Map(), this._computeIncludedIdsMemo = H(
+    super(...arguments), this.entitiesByDomain = {}, this.selectedDomain = null, this.selectedDeviceClass = null, this.hiddenEntities = [], this.hiddenLabels = [], this.hiddenAreas = [], this.hide_person = !1, this.hide_content_name = !0, this.list_mode = !1, this.badge_mode = !1, this.no_background = !1, this.badge_color = "", this.badge_text_color = "", this.selectedGroup = null, this._shouldHideCard = !1, this.__registryEntities = [], this.__registryDevices = [], this.__registryAreas = [], this.__registryFetchInProgress = !1, this._parsedGlobalCss = {}, this._parsedGlobalIconCss = {}, this._parsedGlobalCardCss = {}, this._parsedGlobalNameCss = {}, this._parsedGlobalStateCss = {}, this._inlineCardElementCache = /* @__PURE__ */ new Map(), this._visibleEntityOrder = [], this._computeIncludedIdsMemo = H(
       (e, t, i, s, o, n, a, l, r) => P1(
         e || {},
         t || {},
@@ -3583,11 +3584,13 @@ let $ = class extends R {
     );
   }
   setConfig(e) {
+    var s;
     if (!e)
       throw new Error("Invalid configuration.");
-    this._config = e, this.hide_person = e.hide_person !== void 0 ? e.hide_person : !1, this.hide_content_name = e.hide_content_name !== void 0 ? e.hide_content_name : !1, this.list_mode = e.list_mode !== void 0 ? e.list_mode : !1, this.badge_mode = !!e.badge_mode, this.no_background = !!e.no_background, this.badge_color = e.badge_color || "", this.badge_text_color = e.badge_text_color || "", this.hiddenEntities = e.hidden_entities || [], this.hiddenLabels = e.hidden_labels || [], this.hiddenAreas = e.hidden_areas || [];
-    const t = this._config.styles ?? {};
-    this._parsedGlobalCardCss = B(t.card), this._parsedGlobalCss = B(t.button), this._parsedGlobalIconCss = B(t.icon), this._parsedGlobalNameCss = B(t.name), this._parsedGlobalStateCss = B(t.state);
+    const t = ((s = this._config) == null ? void 0 : s.sort_entities) === !0;
+    this._config = e, (!e.sort_entities || !t) && (this._visibleEntityOrder = []), this.hide_person = e.hide_person !== void 0 ? e.hide_person : !1, this.hide_content_name = e.hide_content_name !== void 0 ? e.hide_content_name : !1, this.list_mode = e.list_mode !== void 0 ? e.list_mode : !1, this.badge_mode = !!e.badge_mode, this.no_background = !!e.no_background, this.badge_color = e.badge_color || "", this.badge_text_color = e.badge_text_color || "", this.hiddenEntities = e.hidden_entities || [], this.hiddenLabels = e.hidden_labels || [], this.hiddenAreas = e.hidden_areas || [];
+    const i = this._config.styles ?? {};
+    this._parsedGlobalCardCss = B(i.card), this._parsedGlobalCss = B(i.button), this._parsedGlobalIconCss = B(i.icon), this._parsedGlobalNameCss = B(i.name), this._parsedGlobalStateCss = B(i.state);
   }
   _showPopup(e, t, i) {
     e.dispatchEvent(
@@ -4088,6 +4091,24 @@ let $ = class extends R {
     }
     return i;
   }
+  _sortInlineEntitiesByActivation(e) {
+    if (this._config.sort_entities !== !0)
+      return this._visibleEntityOrder = [], e;
+    const t = new Map(
+      e.map((o) => [o.entity.entity_id, o])
+    ), i = new Set(t.keys());
+    this._visibleEntityOrder = this._visibleEntityOrder.filter(
+      (o) => i.has(o)
+    );
+    const s = new Set(this._visibleEntityOrder);
+    for (const o of e) {
+      const n = o.entity.entity_id;
+      s.has(n) || (this._visibleEntityOrder.push(n), s.add(n));
+    }
+    return this._visibleEntityOrder.map((o) => t.get(o)).filter(
+      (o) => o !== void 0
+    );
+  }
   renderItemTab(e) {
     const t = e.domain, i = e.deviceClass, s = this._isOn(t, i), o = this._totalEntities(t, i), a = this._shouldShowTotalEntities(t, i) ? o : s;
     if (!a.length) return _``;
@@ -4186,7 +4207,9 @@ let $ = class extends R {
       t,
       i,
       s
-    ), n = this.getPersonItems(), a = this._getInlineEntities(n, o);
+    ), n = this.getPersonItems(), a = this._sortInlineEntitiesByActivation(
+      this._getInlineEntities(n, o)
+    );
     return this._shouldHideCard ? _`` : _`
       <div
         class="inline-entity-grid"
@@ -4429,6 +4452,10 @@ function ln(e, t) {
         },
         {
           name: "show_total_entities",
+          selector: { boolean: {} }
+        },
+        {
+          name: "sort_entities",
           selector: { boolean: {} }
         },
         {

@@ -108,6 +108,7 @@ export class StatusCard extends LitElement {
   private _resetDomainTimeout?: ReturnType<typeof setTimeout>;
   private _resetGroupTimeout?: ReturnType<typeof setTimeout>;
   private _inlineCardElementCache = new Map<string, CardElementCache>();
+  private _visibleEntityOrder: string[] = [];
 
   private _ensureRegistryData(): void {
     if (
@@ -433,7 +434,11 @@ export class StatusCard extends LitElement {
     if (!config) {
       throw new Error("Invalid configuration.");
     }
+    const wasSortingEntities = this._config?.sort_entities === true;
     this._config = config;
+    if (!config.sort_entities || !wasSortingEntities) {
+      this._visibleEntityOrder = [];
+    }
     this.hide_person =
       config.hide_person !== undefined ? config.hide_person : false;
     this.hide_content_name =
@@ -1275,6 +1280,42 @@ export class StatusCard extends LitElement {
     return result;
   }
 
+  private _sortInlineEntitiesByActivation(
+    entities: Array<{ entity: HassEntity; contextKey: string }>,
+  ): Array<{ entity: HassEntity; contextKey: string }> {
+    if (this._config.sort_entities !== true) {
+      this._visibleEntityOrder = [];
+      return entities;
+    }
+
+    const currentById = new Map(
+      entities.map((item) => [item.entity.entity_id, item]),
+    );
+    const currentIds = new Set(currentById.keys());
+
+    this._visibleEntityOrder = this._visibleEntityOrder.filter((id) =>
+      currentIds.has(id),
+    );
+
+    const orderedIds = new Set(this._visibleEntityOrder);
+    for (const item of entities) {
+      const id = item.entity.entity_id;
+      if (!orderedIds.has(id)) {
+        this._visibleEntityOrder.push(id);
+        orderedIds.add(id);
+      }
+    }
+
+    return this._visibleEntityOrder
+      .map((id) => currentById.get(id))
+      .filter(
+        (
+          item,
+        ): item is { entity: HassEntity; contextKey: string } =>
+          item !== undefined,
+      );
+  }
+
   private renderItemTab(item: DomainItem | DeviceClassItem): TemplateResult {
     const domain = item.domain;
     const deviceClass = (item as DeviceClassItem).deviceClass;
@@ -1428,7 +1469,9 @@ export class StatusCard extends LitElement {
     );
 
     const personEntities = this.getPersonItems();
-    const inlineEntities = this._getInlineEntities(personEntities, sorted);
+    const inlineEntities = this._sortInlineEntitiesByActivation(
+      this._getInlineEntities(personEntities, sorted),
+    );
     if (this._shouldHideCard) {
       return html``;
     }

@@ -12,6 +12,7 @@ Global settings that apply to all items.
 - **Enable Total Number:** Will show how many entities are turned on and how much in total you have. This wont change entities in Popup.
 - **Render cards as Square:** Square instead of round items
 - **Enable Total Entities:** Will show all entities no matter the state. This wilkl also change the Popup behaviour to show all entities.
+- **Sort Entities by Activation Time:** Keep visible entities in their activation order. Newly activated entities are appended at the bottom.
 - **Wrap Content:** Multi-line mode instead of scrolling/swiping
 - **Hide Card If Empty:** Hide card completely when no entities are present
 - **Hide Background:** Hide background/border
@@ -41,6 +42,7 @@ hide_content_name: false
 show_total_number: true
 square: true
 show_total_entities: true
+sort_entities: true
 no_scroll: true
 hide_card_if_empty: false
 no_background: false

@@ -68,6 +68,7 @@ hide_content_name: false  # hide names for domains/device classes/exta entities
 show_total_number: false  # lets you show how many entities of a domain are on and how many in total e.g. 1/4 on
 square: false # renders card items as a rounded square instaed of a circle
 show_total_entities: false # lets you choose between showing only 'on' entities or all entities that belongs to a domain
+sort_entities: false # keeps visible entities in activation order; newly activated entities appear at the bottom
 theme: optional # choose a theme to sytle your card
 columns: 4 # defines how much columns are used for more info view (min:1; max:4; default is 4)
 no_scroll: false # lets you choose between multine (without scrolling) or single line (with scrolling)

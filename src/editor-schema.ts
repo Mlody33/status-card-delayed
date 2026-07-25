@@ -173,6 +173,10 @@ export function getAppearanceSchema(
           selector: { boolean: {} },
         },
         {
+          name: "sort_entities",
+          selector: { boolean: {} },
+        },
+        {
           name: "no_scroll",
           selector: { boolean: {} },
         },
