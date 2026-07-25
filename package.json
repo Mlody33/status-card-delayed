@@ -3,7 +3,7 @@
   "version": "v3.3.4",
   "type": "module",
   "devDependencies": {
-    "typescript": "^4.0.0",
+    "typescript": "^5.7.2",
     "vite": "^6.3.5"
   },
   "dependencies": {

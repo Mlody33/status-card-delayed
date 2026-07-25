@@ -8,14 +8,40 @@ import type {
   HassServiceTarget,
   MessageBase,
 } from "home-assistant-js-websocket";
-import type { LocalizeFunc } from "./common/translations/localize";
-import type {
-  FrontendLocaleData,
-  TranslationCategory,
-} from "./data/translation";
-import type { Themes } from "./data/ws-themes";
 import type { LovelaceCardConfig, EntityRegistryEntry } from "../ha";
 import { TemplateResult } from "lit";
+
+export type LocalizeFunc = (
+  key: string,
+  ...replace: unknown[]
+) => string;
+
+export interface FrontendLocaleData {
+  language: string;
+  number_format?: string;
+  time_format?: string;
+  date_format?: string;
+  time_zone?: string;
+  first_weekday?: string;
+}
+
+export type TranslationCategory = string;
+
+export interface Themes {
+  default_theme?: string;
+  default_dark_theme?: string | null;
+  themes: Record<
+    string,
+    Record<string, string> & {
+      modes?: {
+        light?: Record<string, string>;
+        dark?: Record<string, string>;
+      };
+    }
+  >;
+  darkMode?: boolean;
+  theme?: string;
+}
 
 export interface ConfigChangedEvent {
   config: LovelaceCardConfig;
