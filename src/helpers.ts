@@ -255,6 +255,30 @@ export function isEntityActive(
   return isInverted ? !isOn : isOn;
 }
 
+export function isEntityActiveOrRecentlyActive(
+  entity: HassEntity,
+  domain?: string,
+  deviceClass?: string,
+  isInverted = false,
+  recentlyActiveMinutes = 0,
+  now = Date.now()
+): boolean {
+  if (isEntityActive(entity, domain, deviceClass, isInverted)) {
+    return true;
+  }
+
+  const minutes = Number(recentlyActiveMinutes);
+  if (!Number.isFinite(minutes) || minutes <= 0) {
+    return false;
+  }
+
+  const lastChanged = Date.parse(entity.last_changed);
+  return (
+    Number.isFinite(lastChanged) &&
+    now - lastChanged < minutes * 60 * 1000
+  );
+}
+
 let cachedHelpers: { createCardElement?: (config: unknown) => LovelaceCard | Promise<LovelaceCard> } | null = null;
 
 export function createCardElementSynchronous(

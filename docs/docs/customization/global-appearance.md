@@ -13,6 +13,7 @@ Global settings that apply to all items.
 - **Render cards as Square:** Square instead of round items
 - **Enable Total Entities:** Will show all entities no matter the state. This wilkl also change the Popup behaviour to show all entities.
 - **Sort Entities by Activation Time:** Keep visible entities in their activation order. Newly activated entities are appended at the bottom.
+- **Show Recently Active Entities:** Keep entities visible for the configured number of minutes after they become inactive. Set to `0` to disable.
 - **Wrap Content:** Multi-line mode instead of scrolling/swiping
 - **Hide Card If Empty:** Hide card completely when no entities are present
 - **Hide Background:** Hide background/border
@@ -43,6 +44,7 @@ show_total_number: true
 square: true
 show_total_entities: true
 sort_entities: true
+recently_active_minutes: 5
 no_scroll: true
 hide_card_if_empty: false
 no_background: false

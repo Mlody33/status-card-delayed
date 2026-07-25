@@ -14,6 +14,7 @@ import {
   typeKey,
   cacheByProperty,
   isEntityActive,
+  isEntityActiveOrRecentlyActive,
 } from "./helpers";
 import { ALLOWED_DOMAINS } from "./const";
 import {
@@ -92,6 +93,7 @@ export class StatusCard extends LitElement {
   @state() public badge_color: string = "";
   @state() public badge_text_color: string = "";
   @state() public selectedGroup: number | null = null;
+  @state() private _recentActivityTick = 0;
 
   @property({ attribute: false }) public hass!: HomeAssistant;
 
@@ -107,6 +109,7 @@ export class StatusCard extends LitElement {
   @state() private _parsedGlobalStateCss: Record<string, string> = {};
   private _resetDomainTimeout?: ReturnType<typeof setTimeout>;
   private _resetGroupTimeout?: ReturnType<typeof setTimeout>;
+  private _recentActivityTimeout?: ReturnType<typeof setTimeout>;
   private _inlineCardElementCache = new Map<string, CardElementCache>();
   private _visibleEntityOrder: string[] = [];
 
@@ -153,6 +156,7 @@ export class StatusCard extends LitElement {
     if (changedProps.has("list_mode")) return true;
     if (changedProps.has("badge_mode")) return true;
     if (changedProps.has("_shouldHideCard")) return true;
+    if (changedProps.has("_recentActivityTick")) return true;
     if (changedProps.has("__registryEntities")) return true;
     if (changedProps.has("__registryDevices")) return true;
     if (changedProps.has("__registryAreas")) return true;
@@ -421,12 +425,33 @@ export class StatusCard extends LitElement {
   public _isOn(domain: string, deviceClass?: string): HassEntity[] {
     const ents = this._baseEntities(domain, deviceClass);
 
-    const key = typeKey(domain, deviceClass);
+    return ents.filter((entity) =>
+      this.isEntityVisibleAsActive(entity, domain, deviceClass),
+    );
+  }
+
+  public isEntityVisibleAsActive(
+    entity: HassEntity,
+    domain?: string,
+    deviceClass?: string,
+  ): boolean {
+    const effectiveDomain = domain || computeDomain(entity.entity_id);
+    const effectiveDeviceClass =
+      deviceClass ?? entity.attributes.device_class;
+    const key = typeKey(effectiveDomain, effectiveDeviceClass);
     const customization = this.getCustomizationForType(key);
     const isInverted = customization?.invert === true;
+    const recentlyActiveMinutes =
+      customization?.recently_active_minutes ??
+      this._config.recently_active_minutes ??
+      0;
 
-    return ents.filter((entity) =>
-      isEntityActive(entity, domain, deviceClass, isInverted),
+    return isEntityActiveOrRecentlyActive(
+      entity,
+      effectiveDomain,
+      effectiveDeviceClass,
+      isInverted,
+      recentlyActiveMinutes,
     );
   }
 
@@ -561,6 +586,7 @@ export class StatusCard extends LitElement {
     super.disconnectedCallback();
     clearTimeout(this._resetDomainTimeout);
     clearTimeout(this._resetGroupTimeout);
+    clearTimeout(this._recentActivityTimeout);
     this._inlineCardElementCache.clear();
   }
 
@@ -587,6 +613,7 @@ export class StatusCard extends LitElement {
     if (!this._config || !this.hass) return;
 
     this._ensureRegistryData();
+    this._scheduleRecentActivityUpdate();
 
     const oldHass = changedProps.get("hass") as HomeAssistant | undefined;
     const oldConfig = changedProps.get("_config") as
@@ -718,19 +745,56 @@ export class StatusCard extends LitElement {
 
       if (showAll) return true;
 
-      const isInverted = customization?.invert === true;
       const active = entities.filter((entity) =>
-        isEntityActive(
+        this.isEntityVisibleAsActive(
           entity,
           item.domain,
           (item as DeviceClassItem).deviceClass,
-          isInverted,
         ),
       );
       if (active.length > 0) return true;
     }
 
     return false;
+  }
+
+  private _scheduleRecentActivityUpdate(): void {
+    clearTimeout(this._recentActivityTimeout);
+
+    const now = Date.now();
+    let nextExpiration = Number.POSITIVE_INFINITY;
+
+    for (const entity of Object.values(this.hass.states)) {
+      const domain = computeDomain(entity.entity_id);
+      const deviceClass = entity.attributes.device_class;
+      const customization = this.getCustomizationForType(
+        typeKey(domain, deviceClass),
+      );
+      const minutes = Number(
+        customization?.recently_active_minutes ??
+          this._config.recently_active_minutes ??
+          0,
+      );
+      if (!Number.isFinite(minutes) || minutes <= 0) continue;
+
+      const isInverted = customization?.invert === true;
+      if (isEntityActive(entity, domain, deviceClass, isInverted)) continue;
+
+      const lastChanged = Date.parse(entity.last_changed);
+      if (!Number.isFinite(lastChanged)) continue;
+
+      const expiration = lastChanged + minutes * 60 * 1000;
+      if (expiration > now && expiration < nextExpiration) {
+        nextExpiration = expiration;
+      }
+    }
+
+    if (Number.isFinite(nextExpiration)) {
+      this._recentActivityTimeout = setTimeout(() => {
+        this._recentActivityTick++;
+        this._updateShouldHideCard();
+      }, Math.max(0, nextExpiration - now) + 50);
+    }
   }
 
   private _updateShouldHideCard(): void {

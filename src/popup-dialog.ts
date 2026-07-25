@@ -388,14 +388,16 @@ export class StatusCardPopup extends LitElement {
     const domain = this.selectedDomain || computeDomain(entity.entity_id);
     const deviceClass =
       this.selectedDeviceClass || entity.attributes.device_class;
-    const key = typeKey(domain, deviceClass);
-    const customization =
-      typeof this.card?.getCustomizationForType === "function"
-        ? this.card.getCustomizationForType(key)
-        : undefined;
-    const isInverted = customization?.invert === true;
 
-    return isEntityActive(entity, domain, deviceClass, isInverted);
+    if (typeof this.card?.isEntityVisibleAsActive === "function") {
+      return this.card.isEntityVisibleAsActive(
+        entity,
+        domain,
+        deviceClass,
+      );
+    }
+
+    return isEntityActive(entity, domain, deviceClass);
   }
 
   private _getCurrentEntities(): HassEntity[] {

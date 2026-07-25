@@ -70,6 +70,7 @@ show_total_number: false  # lets you show how many entities of a domain are on a
 square: false # renders card items as a rounded square instaed of a circle
 show_total_entities: false # lets you choose between showing only 'on' entities or all entities that belongs to a domain
 sort_entities: false # keeps visible entities in activation order; newly activated entities appear at the bottom
+recently_active_minutes: 0 # also shows entities that became inactive within the last X minutes (0 disables it)
 theme: optional # choose a theme to sytle your card
 columns: 4 # defines how much columns are used for more info view (min:1; max:4; default is 4)
 no_scroll: false # lets you choose between multine (without scrolling) or single line (with scrolling)
@@ -116,6 +117,7 @@ customization:  # customize almost everything
     invert: true  # if true only off entities will be shown
     show_total_number: false  # lets you show how many entities of a domain are on and how many in total e.g. 1/4 on
     show_total_entities: false # lets you choose between showing only 'on' entities or all entities that belongs to a domain
+    recently_active_minutes: 5 # optional override for this domain/device class
     invert_state: false # you can invert the extra_entity state filter
     state: "on" | "off" # specify the value that an extra_entity needs to show
     name: test_name    # change the name of domain/device_class/extra_entitiy
