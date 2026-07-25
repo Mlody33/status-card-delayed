@@ -1393,39 +1393,25 @@ export class StatusCard extends LitElement {
 
     const personEntities = this.getPersonItems();
     const inlineEntities = this._getInlineEntities(personEntities, sorted);
-    const columns = this.list_mode
-      ? 1
-      : Math.max(1, Number(this._config.columns ?? 4));
-
     if (this._shouldHideCard) {
       return html``;
     }
 
-    const noScroll = {
-      "no-scroll": !!this._config.no_scroll,
-      "badge-mode": this.badge_mode,
-      "no-background": this.no_background,
-    };
     return html`
-      <ha-card
-        class=${classMap(noScroll)}
+      <div
+        class="inline-entity-grid"
         style=${styleMap(this._parsedGlobalCardCss)}
       >
-        <div
-          class="inline-entity-grid"
-          style=${styleMap({ "--inline-entity-columns": String(columns) })}
-        >
-          ${repeat(
-            inlineEntities,
-            ({ entity }) => entity.entity_id,
-            ({ entity, contextKey }) => html`
-              <div class="inline-entity-card">
-                ${this._getOrCreateInlineCard(contextKey, entity)}
-              </div>
-            `,
-          )}
-        </div>
-      </ha-card>
+        ${repeat(
+          inlineEntities,
+          ({ entity }) => entity.entity_id,
+          ({ entity, contextKey }) => html`
+            <div class="inline-entity-card">
+              ${this._getOrCreateInlineCard(contextKey, entity)}
+            </div>
+          `,
+        )}
+      </div>
     `;
   }
 

@@ -240,23 +240,15 @@ export const cardStyles = css`
   }
   .inline-entity-grid {
     display: grid;
-    grid-template-columns: repeat(
-      var(--inline-entity-columns, 4),
-      minmax(0, 1fr)
-    );
+    grid-template-columns: minmax(0, 1fr);
     gap: 8px;
-    padding: 8px 12px 12px;
+    padding: 0;
   }
   .inline-entity-card {
     min-width: 0;
   }
   .inline-card-placeholder {
     min-height: 56px;
-  }
-  @media (max-width: 600px) {
-    .inline-entity-grid {
-      grid-template-columns: 1fr;
-    }
   }
   @keyframes spin {
     from {
