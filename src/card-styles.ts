@@ -238,32 +238,14 @@ export const cardStyles = css`
     color: var(--secondary-text-color);
     font-size: 0.9em;
   }
-  .inline-group {
-    padding: 8px 12px 12px;
-  }
-  .inline-group + .inline-group {
-    border-top: 1px solid var(--divider-color);
-  }
-  .inline-group-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 8px;
-    font-weight: 600;
-  }
-  .inline-group-count {
-    color: var(--secondary-text-color);
-    font-size: 0.9em;
-    font-weight: 400;
-  }
-  .inline-group-entities {
+  .inline-entity-grid {
     display: grid;
     grid-template-columns: repeat(
-      var(--inline-group-columns, 4),
+      var(--inline-entity-columns, 4),
       minmax(0, 1fr)
     );
     gap: 8px;
+    padding: 8px 12px 12px;
   }
   .inline-entity-card {
     min-width: 0;
@@ -272,7 +254,7 @@ export const cardStyles = css`
     min-height: 56px;
   }
   @media (max-width: 600px) {
-    .inline-group-entities {
+    .inline-entity-grid {
       grid-template-columns: 1fr;
     }
   }

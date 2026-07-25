@@ -1204,43 +1204,46 @@ export class StatusCard extends LitElement {
     return placeholder;
   }
 
-  private renderInlineGroup(item: GroupItem): TemplateResult {
-    const { ruleset } = item;
-    const entities = this._getGroupEntities(ruleset);
-    if (!entities.length) return html``;
+  private _getInlineEntities(
+    personEntities: HassEntity[],
+    items: AnyItem[],
+  ): Array<{ entity: HassEntity; contextKey: string }> {
+    const result: Array<{ entity: HassEntity; contextKey: string }> = [];
+    const included = new Set<string>();
 
-    const customization = this.getCustomizationForType(ruleset.group_id);
-    const columns = Math.max(
-      1,
-      Number(customization?.columns ?? this._config.columns ?? 4),
-    );
+    const append = (entities: HassEntity[], contextKey: string) => {
+      for (const entity of entities) {
+        if (included.has(entity.entity_id)) continue;
+        included.add(entity.entity_id);
+        result.push({ entity, contextKey });
+      }
+    };
 
-    return html`
-      <section class="inline-group">
-        <div class="inline-group-header">
-          <span>${ruleset.group_id}</span>
-          <span class="inline-group-count">
-            ${entities.length}${ruleset.group_status
-              ? ` ${ruleset.group_status}`
-              : ""}
-          </span>
-        </div>
-        <div
-          class="inline-group-entities"
-          style=${styleMap({ "--inline-group-columns": String(columns) })}
-        >
-          ${repeat(
-            entities,
-            (entity) => entity.entity_id,
-            (entity) => html`
-              <div class="inline-entity-card">
-                ${this._getOrCreateInlineCard(ruleset.group_id, entity)}
-              </div>
-            `,
-          )}
-        </div>
-      </section>
-    `;
+    append(personEntities, "person");
+
+    for (const item of items) {
+      if (item.type === "extra") {
+        append([item.entity], item.panel);
+        continue;
+      }
+
+      if (item.type === "group") {
+        append(this._getGroupEntities(item.ruleset), item.group_id);
+        continue;
+      }
+
+      const deviceClass =
+        item.type === "deviceClass" ? item.deviceClass : undefined;
+      const entities = this._shouldShowTotalEntities(
+        item.domain,
+        deviceClass,
+      )
+        ? this._totalEntities(item.domain, deviceClass)
+        : this._isOn(item.domain, deviceClass);
+      append(entities, typeKey(item.domain, deviceClass));
+    }
+
+    return result;
   }
 
   private renderItemTab(item: DomainItem | DeviceClassItem): TemplateResult {
@@ -1383,12 +1386,16 @@ export class StatusCard extends LitElement {
 
     const sorted = this._computeSortedEntities(
       extra,
-      [],
+      group,
       domain,
       deviceClass,
     );
 
     const personEntities = this.getPersonItems();
+    const inlineEntities = this._getInlineEntities(personEntities, sorted);
+    const columns = this.list_mode
+      ? 1
+      : Math.max(1, Number(this._config.columns ?? 4));
 
     if (this._shouldHideCard) {
       return html``;
@@ -1404,126 +1411,20 @@ export class StatusCard extends LitElement {
         class=${classMap(noScroll)}
         style=${styleMap(this._parsedGlobalCardCss)}
       >
-        <ha-tab-group without-scroll-controls class=${classMap(noScroll)}>
-          <ha-tab-group-tab style="display:none" active></ha-tab-group-tab>
+        <div
+          class="inline-entity-grid"
+          style=${styleMap({ "--inline-entity-columns": String(columns) })}
+        >
           ${repeat(
-            personEntities,
-            (entity) => entity.entity_id,
-            (entity) => {
-              const entityState = this.hass!.states[entity.entity_id];
-              const isNotHome = entityState?.state !== "home";
-              const contentClasses = {
-                horizontal: this._config.content_layout === "horizontal",
-              };
-              const iconStyles = {
-                "border-radius": this._config?.square ? "20%" : "50%",
-                filter: isNotHome ? "grayscale(100%)" : "none",
-              };
-
-              const personHomeColor = this._config.person_home_color;
-              const personAwayColor = this._config.person_away_color;
-              const personHomeIcon =
-                this._config.person_home_icon || "mdi:home";
-              const personAwayIcon =
-                this._config.person_away_icon || "mdi:home-export-outline";
-
-              const badgeColor = isNotHome
-                ? personAwayColor || "red"
-                : personHomeColor || "green";
-
-              const badgeIcon = isNotHome ? personAwayIcon : personHomeIcon;
-
-              return html`
-                <ha-tab-group-tab
-                  slot="nav"
-                  @action=${this._handlePersonAction(entity)}
-                  .actionHandler=${this._computeActionHandler(false, false)}
-                  class=${this.badge_mode ? "badge-mode" : ""}
-                >
-                  ${this.badge_mode
-                    ? html`<div
-                        class="person-badge"
-                        style=${styleMap({
-                          "--status-card-delayed-badge-color": badgeColor
-                            ? `var(--${badgeColor}-color)`
-                            : undefined,
-                          "--status-card-delayed-badge-text-color": this
-                            .badge_text_color
-                            ? `var(--${this.badge_text_color}-color)`
-                            : undefined,
-                        })}
-                      >
-                        ${badgeIcon.startsWith("M")
-                          ? html`<ha-svg-icon .path=${badgeIcon}></ha-svg-icon>`
-                          : html`<ha-icon icon=${badgeIcon}></ha-icon>`}
-                      </div>`
-                    : ""}
-                  <div class="entity ${classMap(contentClasses)}">
-                    <div class="entity-icon" style=${styleMap(iconStyles)}>
-                      ${entity.attributes.entity_picture
-                        ? html`<img
-                            src=${entity.attributes.entity_picture}
-                            alt=${entity.attributes.friendly_name ||
-                            entity.entity_id}
-                            style=${styleMap(iconStyles)}
-                          />`
-                        : entity.attributes.icon?.startsWith("M")
-                          ? html`<ha-svg-icon
-                              class="center"
-                              .path=${entity.attributes.icon}
-                              style=${styleMap(iconStyles)}
-                            ></ha-svg-icon>`
-                          : html`<ha-icon
-                              class="center"
-                              icon=${entity.attributes.icon || "mdi:account"}
-                              style=${styleMap(iconStyles)}
-                            ></ha-icon>`}
-                    </div>
-                    ${!this.badge_mode
-                      ? html`<div class="entity-info">
-                          ${!this.hide_content_name
-                            ? html`<div class="entity-name">
-                                ${entity.attributes.friendly_name?.split(
-                                  " ",
-                                )[0] || ""}
-                              </div>`
-                            : ""}
-                          <div class="entity-state">
-                            ${getStatusProperty(
-                              this.hass!,
-                              this._config,
-                              "person",
-                              undefined,
-                              entityState?.state,
-                            )}
-                          </div>
-                        </div>`
-                      : ""}
-                  </div>
-                </ha-tab-group-tab>
-              `;
-            },
+            inlineEntities,
+            ({ entity }) => entity.entity_id,
+            ({ entity, contextKey }) => html`
+              <div class="inline-entity-card">
+                ${this._getOrCreateInlineCard(contextKey, entity)}
+              </div>
+            `,
           )}
-          ${repeat(
-            sorted,
-            (i) =>
-              i.type === "extra"
-                ? i.panel
-                : i.type === "domain"
-                  ? i.domain
-                  : i.type === "deviceClass"
-                    ? `${i.domain}-${i.deviceClass}`
-                    : i.type === "group"
-                      ? `group-${i.group_id}`
-                      : "",
-            (i) => this.renderTab(i),
-          )}
-        </ha-tab-group>
-        ${repeat(
-          group,
-          (item) => item.group_id,
-          (item) => this.renderInlineGroup(item),
-        )}
+        </div>
       </ha-card>
     `;
   }
