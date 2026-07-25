@@ -70,7 +70,7 @@ import {
 } from "./card-styles";
 import { handleDomainAction, toggleDomain } from "./card-actions";
 import { mdiFormatListGroup } from "@mdi/js";
-import { DOMAIN_FEATURES } from "./const";
+import { getDomainFeatures } from "./const";
 import {
   createCardElement,
   createCardElementSynchronous,
@@ -1239,7 +1239,7 @@ export class StatusCard extends LitElement {
         ? popupCard.type
         : "tile";
     const baseOptions =
-      resolvedType === "tile" ? DOMAIN_FEATURES[domain] ?? {} : {};
+      resolvedType === "tile" ? getDomainFeatures(domain, entity) : {};
     const overrideOptions =
       popupCard && typeof popupCard === "object"
         ? Object.fromEntries(

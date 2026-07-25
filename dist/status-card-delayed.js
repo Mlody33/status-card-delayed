@@ -1530,7 +1530,7 @@ const et = {
     "shutter"
   ],
   switch: ["switch", "outlet"]
-}, B1 = {
+}, Zo = {
   alarm_control_panel: {
     state_content: ["state", "last_changed"],
     features: [
@@ -1670,13 +1670,29 @@ const et = {
     state_content: ["state", "last_changed"],
     features: [{ type: "valve-open-close" }]
   }
-};
+}, Go = /* @__PURE__ */ new Set([
+  "brightness",
+  "color_temp",
+  "hs",
+  "xy",
+  "rgb",
+  "rgbw",
+  "rgbww"
+]);
+function B1(e, t) {
+  const i = Zo[e] ?? { state_content: "state" };
+  if (e !== "light") return i;
+  const s = t.attributes.supported_color_modes;
+  return (Array.isArray(s) ? s.some(
+    (n) => typeof n == "string" && Go.has(n)
+  ) : typeof t.attributes.supported_features == "number" && (t.attributes.supported_features & 1) !== 0) ? i : { ...i, features: [{ type: "toggle" }] };
+}
 function j(e, t, i) {
   return e.localize(
     `component.${i}.entity_component._.state.${t}`
   ) || t;
 }
-const Zo = {
+const Bo = {
   square: (e) => e.localize("ui.panel.lovelace.editor.card.grid.square"),
   hide_person_name: (e) => `${e.localize("ui.common.hide")} ${e.localize(
     "component.person.entity_component._.name"
@@ -1787,7 +1803,7 @@ const Zo = {
     "ui.panel.lovelace.editor.card.generic.state_color"
   )}`
 };
-function Go(e, t, i) {
+function Fo(e, t, i) {
   return t && i ? t === "switch" && i === "switch" ? `${e.localize(
     "ui.panel.lovelace.editor.card.entities.name"
   )} in ${e.localize("component.switch.entity_component._.name")}` : `${e.localize(
@@ -1798,7 +1814,7 @@ function Go(e, t, i) {
     "ui.panel.lovelace.editor.card.entities.name"
   )} in ${e.localize(`component.${t}.entity_component._.name`)}` : e.localize("ui.panel.lovelace.editor.card.entities.name");
 }
-function Bo(e, t) {
+function Ro(e, t) {
   if (Q.includes(t))
     return e.localize(`component.${t}.entity_component._.name`) || t;
   for (const [i, s] of Object.entries(Po))
@@ -1812,9 +1828,9 @@ function Lt(e, t, i, s) {
   if (/^key_\d+$/.test(t.name))
     return e.localize("ui.components.related-filter-menu.filter") || "Filter";
   if (t.name === "header")
-    return Go(e, i, s);
-  const o = Zo[t.name];
-  return o ? o(e) : Bo(e, t.name);
+    return Fo(e, i, s);
+  const o = Bo[t.name];
+  return o ? o(e) : Ro(e, t.name);
 }
 const B = (e, t) => e ? typeof e == "object" ? Object.entries(e).reduce(
   (o, [n, a]) => {
@@ -1832,7 +1848,7 @@ const B = (e, t) => e ? typeof e == "object" ? Object.entries(e).reduce(
     return o;
   },
   {}
-)) : {}, Fo = (e, t, i) => t && t._parsedCss ? t._parsedCss : e ? B(e) : {}, Ro = At`
+)) : {}, jo = (e, t, i) => t && t._parsedCss ? t._parsedCss : e ? B(e) : {}, Uo = At`
   :host-context(hui-badge[preview]) {
     max-width: 500px;
     overflow: hidden;
@@ -2137,7 +2153,7 @@ function ae(e, t, i, s, o) {
     o
   ) || (s == null ? void 0 : s.attributes.friendly_name);
 }
-function jo(e, t, i, s) {
+function No(e, t, i, s) {
   return Vt(
     e,
     "icon_css",
@@ -2146,7 +2162,7 @@ function jo(e, t, i, s) {
     s
   );
 }
-function Uo(e, t) {
+function Wo(e, t) {
   const i = j(e, "home", "device_tracker"), s = j(
     e,
     "not_home",
@@ -2158,10 +2174,10 @@ function j1(e, t) {
   const i = j(e, "open", "cover"), s = j(e, "closed", "cover");
   return t ? s : i;
 }
-function No(e, t) {
+function qo(e, t) {
   return t === "home" ? j(e, "home", "person") : t === "not_home" ? j(e, "not_home", "person") : t ?? "unknown";
 }
-function Wo(e, t, i, s) {
+function Ko(e, t, i, s) {
   if (i && Io.includes(i))
     return j1(e, t);
   const o = j(e, s ?? "on", "light"), n = j(e, s ?? "off", "light");
@@ -2171,17 +2187,17 @@ function ie(e, t, i, s, o, n, a, l) {
   const r = P(i, s), c = Ht(t, r, l), d = (c == null ? void 0 : c.invert) === !0;
   switch (i) {
     case "device_tracker":
-      return Uo(e, d);
+      return Wo(e, d);
     case "lock":
     case "cover":
       return j1(e, d);
     case "person":
-      return No(e, o);
+      return qo(e, o);
     default:
-      return Wo(e, d, s, o);
+      return Ko(e, d, s, o);
   }
 }
-function qo(e, t = {}) {
+function Yo(e, t = {}) {
   const { color: i, background_color: s, square: o, isNotHome: n } = t, a = {
     "border-radius": o ? "20%" : "50%",
     "background-color": s,
@@ -2261,12 +2277,12 @@ function E1(e, t, i, s, o, n, a) {
     l
   );
 }
-var Ko = Object.defineProperty, z = (e, t, i, s) => {
+var Jo = Object.defineProperty, z = (e, t, i, s) => {
   for (var o = void 0, n = e.length - 1, a; n >= 0; n--)
     (a = e[n]) && (o = a(t, i, o) || o);
-  return o && Ko(t, i, o), o;
+  return o && Jo(t, i, o), o;
 };
-const Yo = [
+const Xo = [
   "light",
   "switch",
   "fan",
@@ -2407,7 +2423,7 @@ const Yo = [
           entity: t.entity_id
         };
     }
-    const s = D(t.entity_id), o = this.selectedDomain || s, n = this.selectedDomain ? this.selectedDeviceClass : (v = (C = (f = (g = this.hass) == null ? void 0 : g.states) == null ? void 0 : f[t.entity_id]) == null ? void 0 : C.attributes) == null ? void 0 : v.device_class, a = P(o, n), l = typeof (i == null ? void 0 : i.getCustomizationForType) == "function" ? i.getCustomizationForType(a) : void 0, r = l == null ? void 0 : l.popup_card, c = r && typeof r.type == "string" && r.type || "tile", d = c === "tile" ? B1[s] ?? {} : {};
+    const s = D(t.entity_id), o = this.selectedDomain || s, n = this.selectedDomain ? this.selectedDeviceClass : (v = (C = (f = (g = this.hass) == null ? void 0 : g.states) == null ? void 0 : f[t.entity_id]) == null ? void 0 : C.attributes) == null ? void 0 : v.device_class, a = P(o, n), l = typeof (i == null ? void 0 : i.getCustomizationForType) == "function" ? i.getCustomizationForType(a) : void 0, r = l == null ? void 0 : l.popup_card, c = r && typeof r.type == "string" && r.type || "tile", d = c === "tile" ? B1(s, t) : {};
     let h = {};
     if (r && typeof r == "object") {
       const { type: T, entity: y, ...V } = r;
@@ -2549,7 +2565,7 @@ const Yo = [
   }
   get _isToggleableDomain() {
     const t = this.selectedDomain;
-    return !t || t.includes(".") ? !1 : Yo.includes(t);
+    return !t || t.includes(".") ? !1 : Xo.includes(t);
   }
   _getDomainToggleLabel(t) {
     const i = this.selectedDomain, s = {
@@ -3096,12 +3112,12 @@ customElements.define(
   "status-card-delayed-popup-confirmation",
   ft
 );
-const Jo = (e, t, i, s) => s ? [] : Object.values(e).filter(
+const Qo = (e, t, i, s) => s ? [] : Object.values(e).filter(
   (o) => {
     var n;
     return o.entity_id.startsWith("person.") && !t.includes(o.entity_id) && !((n = o.labels) != null && n.some((a) => i.includes(a))) && !o.hidden;
   }
-).map((o) => o.entity_id).reverse(), Xo = (e, t) => e.map((i) => t[i]).filter((i) => !!i), Qo = (e, t, i) => {
+).map((o) => o.entity_id).reverse(), tn = (e, t) => e.map((i) => t[i]).filter((i) => !!i), en = (e, t, i) => {
   const s = e.content || [];
   return e.extra_entities ? e.extra_entities.reduce((o, n) => {
     var b;
@@ -3127,7 +3143,7 @@ const Jo = (e, t, i, s) => s ? [] : Object.values(e).filter(
       n,
       void 0,
       i
-    ) || ((l == null ? void 0 : l.activate_state_color) ?? e.activate_state_color ? Vo(a) : void 0) || e.color, u = jo(
+    ) || ((l == null ? void 0 : l.activate_state_color) ?? e.activate_state_color ? Vo(a) : void 0) || e.color, u = No(
       e,
       n,
       void 0,
@@ -3150,7 +3166,7 @@ const Jo = (e, t, i, s) => s ? [] : Object.values(e).filter(
       background_color: m
     }), o;
   }, []).sort((o, n) => o.order - n.order) : [];
-}, tn = (e, t) => e.map((i, s) => {
+}, sn = (e, t) => e.map((i, s) => {
   const o = t.find((a) => a.group_id === i);
   if (!(!o || !Object.keys(o).some(
     (a) => a !== "group_id" && a !== "group_icon" && o[a] !== void 0 && o[a] !== ""
@@ -3161,13 +3177,13 @@ const Jo = (e, t, i, s) => s ? [] : Object.values(e).filter(
       order: s,
       ruleset: o
     };
-}).filter((i) => !!i), en = (e) => e.map(
+}).filter((i) => !!i), on = (e) => e.map(
   (t, i) => t.includes(" - ") ? null : {
     type: "domain",
     domain: t.trim().toLowerCase().replace(/\s+/g, "_"),
     order: i
   }
-).filter((t) => t !== null), sn = (e) => e.map((t, i) => {
+).filter((t) => t !== null), nn = (e) => e.map((t, i) => {
   if (!t.includes(" - ")) return null;
   const [s, o] = t.split(" - ");
   return {
@@ -3240,7 +3256,7 @@ const Jo = (e, t, i, s) => s ? [] : Object.values(e).filter(
     })
   ) : !1) : i.map((r) => s[r]).filter((r) => !!r);
 };
-function on(e, t, i, s, o) {
+function an(e, t, i, s, o) {
   var p;
   const n = e.__registryEntities || [], a = e.__registryDevices || [], l = e.__registryAreas || [], r = i || new Map(n.map((u) => [u.entity_id, u])), c = s || new Map(a.map((u) => [u.id, u])), d = o || new Map(l.map((u) => [u.area_id, u])), h = U1(
     t,
@@ -3325,7 +3341,7 @@ function x(e, t) {
     }
   return e === t;
 }
-const nn = {
+const rn = {
   area: (e, t, { entityMap: i, deviceMap: s }, o) => {
     let n = o == null ? void 0 : o.area_id;
     if (!n && (o != null && o.device_id)) {
@@ -3396,13 +3412,13 @@ const nn = {
 };
 function W1(e, t, i, s) {
   var a, l;
-  const o = ((a = s.entityMap) == null ? void 0 : a.get(t.entity_id)) || ((l = s.entities) == null ? void 0 : l.find((r) => r.entity_id === t.entity_id)), n = nn[i.key];
+  const o = ((a = s.entityMap) == null ? void 0 : a.get(t.entity_id)) || ((l = s.entities) == null ? void 0 : l.find((r) => r.entity_id === t.entity_id)), n = rn[i.key];
   return n ? n(t, i.value, { ...s, card: e }, o) : !0;
 }
-var an = Object.defineProperty, rn = Object.getOwnPropertyDescriptor, M = (e, t, i, s) => {
-  for (var o = s > 1 ? void 0 : s ? rn(t, i) : t, n = e.length - 1, a; n >= 0; n--)
+var ln = Object.defineProperty, cn = Object.getOwnPropertyDescriptor, M = (e, t, i, s) => {
+  for (var o = s > 1 ? void 0 : s ? cn(t, i) : t, n = e.length - 1, a; n >= 0; n--)
     (a = e[n]) && (o = (s ? a(t, i, o) : a(o)) || o);
-  return s && o && an(t, i, o), o;
+  return s && o && ln(t, i, o), o;
 };
 let $ = class extends F {
   constructor() {
@@ -3430,8 +3446,8 @@ let $ = class extends F {
           if (s[a] !== n[a]) return !1;
         return !0;
       }
-    ), this._customizationIndexMemo = H(F1), this._computePersonIdsMemo = H(Jo), this._mapPersonIdsToStatesMemo = H(
-      (e, t) => Xo(e, t),
+    ), this._customizationIndexMemo = H(F1), this._computePersonIdsMemo = H(Qo), this._mapPersonIdsToStatesMemo = H(
+      (e, t) => tn(e, t),
       (e, t) => {
         const [i, s] = e, [o, n] = t;
         if (i !== o) return !1;
@@ -3440,7 +3456,7 @@ let $ = class extends F {
         return !0;
       }
     ), this._computeExtraItemsMemo = H(
-      Qo,
+      en,
       (e, t) => {
         const [i, s, o] = e, [n, a, l] = t;
         if (i !== n || o !== l) return !1;
@@ -3450,7 +3466,7 @@ let $ = class extends F {
           if (s[c] !== a[c]) return !1;
         return !0;
       }
-    ), this._computeGroupItemsMemo = H(tn), this._computeDomainItemsMemo = H(en), this._computeDeviceClassItemsMemo = H(sn), this._computeEntityMap = H(
+    ), this._computeGroupItemsMemo = H(sn), this._computeDomainItemsMemo = H(on), this._computeDeviceClassItemsMemo = H(nn), this._computeEntityMap = H(
       (e) => new Map(e.map((t) => [t.entity_id, t]))
     ), this._computeDeviceMap = H(
       (e) => new Map(e.map((t) => [t.id, t]))
@@ -3641,7 +3657,7 @@ let $ = class extends F {
       );
       if (h) {
         const p = this._computeEntityMap(this.__registryEntities), u = this._computeDeviceMap(this.__registryDevices), m = this._computeAreaMap(this.__registryAreas);
-        s = on(
+        s = an(
           this,
           h,
           p,
@@ -3857,7 +3873,7 @@ let $ = class extends F {
     );
   }
   _getIconStyles(e, t = {}) {
-    return qo(e, t);
+    return Yo(e, t);
   }
   _computeBadgeStyles(e) {
     const t = (e == null ? void 0 : e.badge_color) || this.badge_color || void 0, i = (e == null ? void 0 : e.badge_text_color) || this.badge_text_color || void 0, s = {
@@ -3868,7 +3884,7 @@ let $ = class extends F {
   }
   _computeButtonStyles(e) {
     var i, s;
-    const t = Fo(
+    const t = jo(
       ((i = e == null ? void 0 : e.styles) == null ? void 0 : i.button) || ((s = e == null ? void 0 : e.styles) == null ? void 0 : s.card),
       e
     );
@@ -4077,7 +4093,7 @@ let $ = class extends F {
       };
     const s = D(t.entity_id), o = t.attributes.device_class, n = this.getCustomizationForType(
       P(s, o)
-    ), a = n == null ? void 0 : n.popup_card, l = a && typeof a.type == "string" ? a.type : "tile", r = l === "tile" ? B1[s] ?? {} : {}, c = a && typeof a == "object" ? Object.fromEntries(
+    ), a = n == null ? void 0 : n.popup_card, l = a && typeof a.type == "string" ? a.type : "tile", r = l === "tile" ? B1(s, t) : {}, c = a && typeof a == "object" ? Object.fromEntries(
       Object.entries(a).filter(
         ([d]) => d !== "type" && d !== "entity"
       )
@@ -4368,7 +4384,7 @@ let $ = class extends F {
     ` : this._renderGroupedEntities(n, o);
   }
   static get styles() {
-    return [Ro];
+    return [Uo];
   }
   static getConfigElement() {
     return document.createElement("status-card-delayed-editor");
@@ -4461,7 +4477,7 @@ M([
 $ = M([
   It("status-card-delayed")
 ], $);
-function ln(e, t, i, s, o) {
+function dn(e, t, i, s, o) {
   const n = (d, h, p) => Lt(e, d, h, p), a = n({ name: "area" }), l = n({ name: "floor" }), r = n({ name: "name" }), c = n({ name: "state" });
   return [
     {
@@ -4578,7 +4594,7 @@ function ln(e, t, i, s, o) {
     }
   ];
 }
-function cn(e, t) {
+function hn(e, t) {
   return [
     {
       name: "",
@@ -4688,7 +4704,7 @@ function cn(e, t) {
     }
   ];
 }
-function dn(e) {
+function un(e) {
   const t = [
     "more-info",
     "toggle",
@@ -4703,7 +4719,7 @@ function dn(e) {
     { name: "hold_action", selector: { ui_action: { actions: t } } }
   ];
 }
-const hn = (e, t, i, s, o) => e === "domain" ? [
+const pn = (e, t, i, s, o) => e === "domain" ? [
   {
     name: "",
     type: "grid",
@@ -4812,7 +4828,7 @@ const hn = (e, t, i, s, o) => e === "domain" ? [
       color_rgb: { default_color: "state", include_state: !0 }
     }
   }
-], un = (e, t, i, s) => {
+], fn = (e, t, i, s) => {
   const o = [
     "more-info",
     "toggle",
@@ -4826,14 +4842,14 @@ const hn = (e, t, i, s, o) => e === "domain" ? [
     { name: "double_tap_action", selector: { ui_action: { actions: o } } },
     { name: "hold_action", selector: { ui_action: { actions: o } } }
   ];
-}, pn = () => [
+}, _n = () => [
   {
     name: "styles",
     selector: {
       object: {}
     }
   }
-], fn = () => [
+], mn = () => [
   {
     name: "styles",
     selector: {
@@ -4841,10 +4857,10 @@ const hn = (e, t, i, s, o) => e === "domain" ? [
     }
   }
 ];
-var _n = Object.defineProperty, mn = Object.getOwnPropertyDescriptor, Y = (e, t, i, s) => {
-  for (var o = s > 1 ? void 0 : s ? mn(t, i) : t, n = e.length - 1, a; n >= 0; n--)
+var gn = Object.defineProperty, Cn = Object.getOwnPropertyDescriptor, Y = (e, t, i, s) => {
+  for (var o = s > 1 ? void 0 : s ? Cn(t, i) : t, n = e.length - 1, a; n >= 0; n--)
     (a = e[n]) && (o = (s ? a(t, i, o) : a(o)) || o);
-  return s && o && _n(t, i, o), o;
+  return s && o && gn(t, i, o), o;
 };
 let U = class extends F {
   constructor() {
@@ -4861,18 +4877,18 @@ let U = class extends F {
     if (!this.hass || !this.config)
       return _``;
     let e;
-    this._activeTab === "appearance" ? e = hn(
+    this._activeTab === "appearance" ? e = pn(
       this.getSchema,
       (i = this.config) == null ? void 0 : i.type,
       this.hass,
       ((s = this._config) == null ? void 0 : s.badge_mode) ?? !1,
       this.isGroup
-    ) : this._activeTab === "actions" ? e = un(
+    ) : this._activeTab === "actions" ? e = fn(
       this.getSchema,
       (o = this.config) == null ? void 0 : o.type,
       this.hass,
       ((n = this._config) == null ? void 0 : n.badge_mode) ?? !1
-    ) : this._activeTab === "style" && (e = pn());
+    ) : this._activeTab === "style" && (e = _n());
     const t = {
       ...this._config
     };
@@ -5110,10 +5126,10 @@ Y([
 U = Y([
   It("status-card-delayed-item-editor")
 ], U);
-var gn = Object.defineProperty, Cn = Object.getOwnPropertyDescriptor, Bt = (e, t, i, s) => {
-  for (var o = s > 1 ? void 0 : s ? Cn(t, i) : t, n = e.length - 1, a; n >= 0; n--)
+var yn = Object.defineProperty, vn = Object.getOwnPropertyDescriptor, Bt = (e, t, i, s) => {
+  for (var o = s > 1 ? void 0 : s ? vn(t, i) : t, n = e.length - 1, a; n >= 0; n--)
     (a = e[n]) && (o = (s ? a(t, i, o) : a(o)) || o);
-  return s && o && gn(t, i, o), o;
+  return s && o && yn(t, i, o), o;
 };
 class ye extends F {
   constructor() {
@@ -5281,10 +5297,10 @@ Bt([
 ce = Bt([
   It("status-card-delayed-items-editor")
 ], ce);
-var yn = Object.defineProperty, vn = Object.getOwnPropertyDescriptor, st = (e, t, i, s) => {
-  for (var o = s > 1 ? void 0 : s ? vn(t, i) : t, n = e.length - 1, a; n >= 0; n--)
+var bn = Object.defineProperty, An = Object.getOwnPropertyDescriptor, st = (e, t, i, s) => {
+  for (var o = s > 1 ? void 0 : s ? An(t, i) : t, n = e.length - 1, a; n >= 0; n--)
     (a = e[n]) && (o = (s ? a(t, i, o) : a(o)) || o);
-  return s && o && yn(t, i, o), o;
+  return s && o && bn(t, i, o), o;
 };
 function oe(e, t) {
   const { [t]: i, ...s } = e;
@@ -5309,14 +5325,14 @@ let K = class extends F {
       (e, t, i, s, o, n) => {
         switch (e) {
           case "appearance":
-            return cn(this.hass, n);
+            return hn(this.hass, n);
           case "actions":
-            return dn(this.hass);
+            return un(this.hass);
           case "style":
-            return fn();
+            return mn();
           case "config":
           default:
-            return ln(
+            return dn(
               this.hass,
               t,
               i,

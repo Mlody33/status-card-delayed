@@ -133,6 +133,7 @@ import {
   mdiMapMarkerOff,
 } from "@mdi/js";
 import { DomainIconDef, DomainFeatureDef } from "./ha/types";
+import type { HassEntity } from "home-assistant-js-websocket";
 
 export const DOMAIN_ICONS: Record<string, DomainIconDef> = {
   alarm_control_panel: { on: mdiAlarmLight, off: mdiAlarmLightOff },
@@ -502,3 +503,34 @@ export const DOMAIN_FEATURES: Record<string, DomainFeatureDef> = {
     features: [{ type: "valve-open-close" }],
   },
 };
+
+const BRIGHTNESS_COLOR_MODES = new Set([
+  "brightness",
+  "color_temp",
+  "hs",
+  "xy",
+  "rgb",
+  "rgbw",
+  "rgbww",
+]);
+
+export function getDomainFeatures(
+  domain: string,
+  entity: HassEntity,
+): DomainFeatureDef {
+  const features = DOMAIN_FEATURES[domain] ?? { state_content: "state" };
+  if (domain !== "light") return features;
+
+  const supportedColorModes = entity.attributes.supported_color_modes;
+  const supportsBrightness = Array.isArray(supportedColorModes)
+    ? supportedColorModes.some(
+        (mode) =>
+          typeof mode === "string" && BRIGHTNESS_COLOR_MODES.has(mode),
+      )
+    : typeof entity.attributes.supported_features === "number" &&
+      (entity.attributes.supported_features & 1) !== 0;
+
+  return supportsBrightness
+    ? features
+    : { ...features, features: [{ type: "toggle" }] };
+}

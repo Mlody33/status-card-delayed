@@ -26,7 +26,7 @@ import {
   ensureHelpersLoaded,
 } from "./helpers";
 import { computeLabelCallback, translateEntityState } from "./translations";
-import { DOMAIN_FEATURES } from "./const";
+import { getDomainFeatures } from "./const";
 import { toggleDomain } from "./card-actions";
 import { StatusCard } from "./card";
 import { PopupCardConfigCache, CardElementCache } from "./ha/types";
@@ -225,7 +225,9 @@ export class StatusCardPopup extends LitElement {
       (popupCard && typeof popupCard.type === "string" && popupCard.type) ||
       "tile";
     const baseOptions =
-      resolvedType === "tile" ? DOMAIN_FEATURES[domainFromEntity] ?? {} : {};
+      resolvedType === "tile"
+        ? getDomainFeatures(domainFromEntity, entity)
+        : {};
     let overrideOptions: Record<string, unknown> = {};
     if (popupCard && typeof popupCard === "object") {
       const { type: _omitType, entity: _omitEntity, ...rest } = popupCard;
