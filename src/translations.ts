@@ -82,6 +82,7 @@ const LABEL_MAP: Record<string, (hass: HomeAssistant) => string> = {
       "component.sensor.entity_component._.state_attributes.state_class.state.total"
     )} ${hass.localize("ui.panel.lovelace.editor.card.entities.name")}`,
   sort_entities: () => "Sort entities by activation time",
+  ungroup_entities: () => "Show entity cards without grouping",
   appearance: (hass) =>
     hass.localize("ui.panel.lovelace.editor.card.tile.appearance") ||
     "Appearance",

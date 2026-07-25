@@ -40,6 +40,7 @@ type: custom:status-card-delayed
 columns: 4
 hide_person: false
 list_mode: false
+ungroup_entities: false # set true to show one entity card per row
 hide_content_name: false
 customization: []
 content:

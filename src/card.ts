@@ -1455,6 +1455,140 @@ export class StatusCard extends LitElement {
     }
   }
 
+  private _renderPersonTab(entity: HassEntity): TemplateResult {
+    const entityState = this.hass.states[entity.entity_id];
+    const isNotHome = entityState?.state !== "home";
+    const contentClasses = {
+      horizontal: this._config.content_layout === "horizontal",
+    };
+    const iconStyles = {
+      "border-radius": this._config.square ? "20%" : "50%",
+      filter: isNotHome ? "grayscale(100%)" : "none",
+    };
+    const badgeColor = isNotHome
+      ? this._config.person_away_color || "red"
+      : this._config.person_home_color || "green";
+    const badgeIcon = isNotHome
+      ? this._config.person_away_icon || "mdi:home-export-outline"
+      : this._config.person_home_icon || "mdi:home";
+
+    return html`
+      <ha-tab-group-tab
+        slot="nav"
+        @action=${this._handlePersonAction(entity)}
+        .actionHandler=${this._computeActionHandler(false, false)}
+        class=${this.badge_mode ? "badge-mode" : ""}
+      >
+        ${this.badge_mode
+          ? html`
+              <div
+                class="person-badge"
+                style=${styleMap({
+                  "--status-card-delayed-badge-color": `var(--${badgeColor}-color)`,
+                  "--status-card-delayed-badge-text-color": this.badge_text_color
+                    ? `var(--${this.badge_text_color}-color)`
+                    : undefined,
+                })}
+              >
+                ${badgeIcon.startsWith("M")
+                  ? html`<ha-svg-icon .path=${badgeIcon}></ha-svg-icon>`
+                  : html`<ha-icon icon=${badgeIcon}></ha-icon>`}
+              </div>
+            `
+          : ""}
+        <div class="entity ${classMap(contentClasses)}">
+          <div class="entity-icon" style=${styleMap(iconStyles)}>
+            ${entity.attributes.entity_picture
+              ? html`
+                  <img
+                    src=${entity.attributes.entity_picture}
+                    alt=${entity.attributes.friendly_name || entity.entity_id}
+                    style=${styleMap(iconStyles)}
+                  />
+                `
+              : entity.attributes.icon?.startsWith("M")
+                ? html`
+                    <ha-svg-icon
+                      class="center"
+                      .path=${entity.attributes.icon}
+                      style=${styleMap(iconStyles)}
+                    ></ha-svg-icon>
+                  `
+                : html`
+                    <ha-icon
+                      class="center"
+                      icon=${entity.attributes.icon || "mdi:account"}
+                      style=${styleMap(iconStyles)}
+                    ></ha-icon>
+                  `}
+          </div>
+          ${!this.badge_mode
+            ? html`
+                <div class="entity-info">
+                  ${!this.hide_content_name
+                    ? html`
+                        <div class="entity-name">
+                          ${entity.attributes.friendly_name?.split(" ")[0] ||
+                          ""}
+                        </div>
+                      `
+                    : ""}
+                  <div class="entity-state">
+                    ${getStatusProperty(
+                      this.hass,
+                      this._config,
+                      "person",
+                      undefined,
+                      entityState?.state,
+                    )}
+                  </div>
+                </div>
+              `
+            : ""}
+        </div>
+      </ha-tab-group-tab>
+    `;
+  }
+
+  private _renderGroupedEntities(
+    personEntities: HassEntity[],
+    items: AnyItem[],
+  ): TemplateResult {
+    const classes = {
+      "no-scroll": !!this._config.no_scroll,
+      "badge-mode": this.badge_mode,
+      "no-background": this.no_background,
+    };
+
+    return html`
+      <ha-card
+        class=${classMap(classes)}
+        style=${styleMap(this._parsedGlobalCardCss)}
+      >
+        <ha-tab-group without-scroll-controls class=${classMap(classes)}>
+          <ha-tab-group-tab style="display:none" active></ha-tab-group-tab>
+          ${repeat(
+            personEntities,
+            (entity) => entity.entity_id,
+            (entity) => this._renderPersonTab(entity),
+          )}
+          ${repeat(
+            items,
+            (item) =>
+              item.type === "extra"
+                ? item.panel
+                : item.type === "domain"
+                  ? item.domain
+                  : item.type === "deviceClass"
+                    ? `${item.domain}-${item.deviceClass}`
+                    : `group-${item.group_id}`,
+            (item) => this.renderTab(item),
+          )}
+        </ha-tab-group>
+      </ha-card>
+    `;
+  }
+
   protected render() {
     const extra = this.getExtraItems();
     const group = this.getGroupItems();
@@ -1474,6 +1608,10 @@ export class StatusCard extends LitElement {
     );
     if (this._shouldHideCard) {
       return html``;
+    }
+
+    if (!this._config.ungroup_entities) {
+      return this._renderGroupedEntities(personEntities, sorted);
     }
 
     return html`

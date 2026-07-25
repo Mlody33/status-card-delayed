@@ -177,6 +177,10 @@ export function getAppearanceSchema(
           selector: { boolean: {} },
         },
         {
+          name: "ungroup_entities",
+          selector: { boolean: {} },
+        },
+        {
           name: "no_scroll",
           selector: { boolean: {} },
         },
