@@ -226,7 +226,12 @@ export class StatusCardPopup extends LitElement {
       "tile";
     const baseOptions =
       resolvedType === "tile"
-        ? getDomainFeatures(domainFromEntity, entity)
+        ? {
+            ...getDomainFeatures(domainFromEntity, entity),
+            features_position: card._config.inline_feature
+              ? "inline"
+              : "bottom",
+          }
         : {};
     let overrideOptions: Record<string, unknown> = {};
     if (popupCard && typeof popupCard === "object") {

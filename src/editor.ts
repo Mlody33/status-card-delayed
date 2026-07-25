@@ -80,6 +80,7 @@ export class StatusCardEditor extends LitElement {
       columns: config.columns ?? 4,
       hide_person: config.hide_person ?? false,
       list_mode: config.list_mode ?? false,
+      inline_feature: config.inline_feature ?? false,
       ungroup_entities: config.ungroup_entities ?? false,
       hide_content_name: config.hide_content_name ?? false,
       customization: config.customization ?? [],

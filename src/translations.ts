@@ -30,6 +30,7 @@ const LABEL_MAP: Record<string, (hass: HomeAssistant) => string> = {
     `${hass.localize("ui.card.common.turn_on")} ${hass.localize(
       "ui.components.media-browser.list"
     )} ${hass.localize("ui.dialogs.helper_settings.input_text.mode")}`,
+  inline_feature: () => "Show entity card features inline",
   columns: (hass) =>
     `${hass.localize(
       "ui.panel.lovelace.editor.action-editor.actions.more-info"

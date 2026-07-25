@@ -126,6 +126,7 @@ export function getConfigSchema(
               selector: { boolean: {} },
             },
             { name: "list_mode", selector: { boolean: {} } },
+            { name: "inline_feature", selector: { boolean: {} } },
           ],
         },
         {

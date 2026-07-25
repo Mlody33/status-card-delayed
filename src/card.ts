@@ -1239,7 +1239,14 @@ export class StatusCard extends LitElement {
         ? popupCard.type
         : "tile";
     const baseOptions =
-      resolvedType === "tile" ? getDomainFeatures(domain, entity) : {};
+      resolvedType === "tile"
+        ? {
+            ...getDomainFeatures(domain, entity),
+            features_position: this._config.inline_feature
+              ? "inline"
+              : "bottom",
+          }
+        : {};
     const overrideOptions =
       popupCard && typeof popupCard === "object"
         ? Object.fromEntries(

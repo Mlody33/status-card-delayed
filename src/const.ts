@@ -514,11 +514,25 @@ const BRIGHTNESS_COLOR_MODES = new Set([
   "rgbww",
 ]);
 
+const COVER_SUPPORT_SET_POSITION = 4;
+
 export function getDomainFeatures(
   domain: string,
   entity: HassEntity,
 ): DomainFeatureDef {
   const features = DOMAIN_FEATURES[domain] ?? { state_content: "state" };
+
+  if (domain === "cover") {
+    const supportedFeatures = entity.attributes.supported_features;
+    const supportsPosition =
+      typeof supportedFeatures === "number" &&
+      (supportedFeatures & COVER_SUPPORT_SET_POSITION) !== 0;
+
+    return supportsPosition
+      ? features
+      : { ...features, features: [{ type: "cover-open-close" }] };
+  }
+
   if (domain !== "light") return features;
 
   const supportedColorModes = entity.attributes.supported_color_modes;

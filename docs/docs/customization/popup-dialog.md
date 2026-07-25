@@ -57,6 +57,7 @@ customization:
 | **Columns** | Number of columns in the popup (1-4) |
 | **Popup Sort** | Sort by name or state |
 | **Disable Area Group** | Disable area grouping |
+| **Inline Feature** | Display generated tile-card features inline instead of at the bottom |
 
 
 <img class="doc-img-responsive" src="../img/popup_editor.png" alt="Popup Editor">
@@ -70,4 +71,5 @@ type: custom:status-card-delayed
 columns: 3
 popup_sort: name|state
 ungroup_areas: false
+inline_feature: false
 ```
