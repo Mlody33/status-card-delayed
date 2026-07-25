@@ -190,7 +190,7 @@ abstract class BaseItemsEditor extends LitElement {
   }
 }
 
-@customElement("status-items-editor")
+@customElement("status-card-delayed-items-editor")
 export class StatusItemsEditor extends BaseItemsEditor {
   @property({ attribute: false }) customization?: LovelaceCardConfig[];
   protected get customizationkey() {

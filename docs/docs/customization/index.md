@@ -9,7 +9,7 @@ All customization options are optional. Customizations are grouped by features â
 !!! info "Info"
     Some customization combinations may break due to HA updates. Test one option at a time if unsure.
 
-<img class="doc-img-responsive" src="../img/status-card-delayed-light.png" alt="Status Card Preview">
+<img class="doc-img-responsive" src="../img/status-card-light.png" alt="Status Card Delayed Preview">
 
 ---
 

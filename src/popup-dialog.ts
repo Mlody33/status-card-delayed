@@ -97,7 +97,7 @@ export class StatusCardPopup extends LitElement {
     this._cardEls.clear();
     this._showAll = params.initialShowAll ?? false;
     this.open = true;
-    window.history.pushState({ statusCardPopup: true }, "");
+    window.history.pushState({ statusCardDelayedPopup: true }, "");
     await ensureHelpersLoaded();
     if (!customElements.get("hui-tile-card")) {
       try {
@@ -136,7 +136,7 @@ export class StatusCardPopup extends LitElement {
   private _close = () => {
     if (!this.open) return;
     this.open = false;
-    if (window.history.state?.statusCardPopup) {
+    if (window.history.state?.statusCardDelayedPopup) {
       window.history.back();
     }
   };
@@ -180,7 +180,7 @@ export class StatusCardPopup extends LitElement {
   }
 
   private _onPopState = (ev: PopStateEvent) => {
-    if (this.open && !window.history.state?.statusCardPopup) {
+    if (this.open && !window.history.state?.statusCardDelayedPopup) {
       this.open = false;
     }
   };
@@ -1109,7 +1109,7 @@ class StatusCardPopupConfirmation extends LitElement {
     this.selectedDomain = params.selectedDomain;
     this.selectedDeviceClass = params.selectedDeviceClass;
     this.open = true;
-    window.history.pushState({ statusCardPopupConfirm: true }, "");
+    window.history.pushState({ statusCardDelayedPopupConfirm: true }, "");
     this.requestUpdate();
   }
 
@@ -1124,7 +1124,7 @@ class StatusCardPopupConfirmation extends LitElement {
   }
 
   private _onPopState = () => {
-    if (this.open && !window.history.state?.statusCardPopupConfirm) {
+    if (this.open && !window.history.state?.statusCardDelayedPopupConfirm) {
       this.open = false;
     }
   };
@@ -1132,7 +1132,7 @@ class StatusCardPopupConfirmation extends LitElement {
   private _close = () => {
     if (!this.open) return;
     this.open = false;
-    if (window.history.state?.statusCardPopupConfirm) {
+    if (window.history.state?.statusCardDelayedPopupConfirm) {
       window.history.back();
     }
   };

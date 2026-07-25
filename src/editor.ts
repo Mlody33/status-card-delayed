@@ -1647,14 +1647,14 @@ name:
                   .computeLabel=${this.computeLabel}
                   @value-changed=${this._valueChanged}
                 ></ha-form>
-                <status-items-editor
+                <status-card-delayed-items-editor
                   .hass=${this.hass}
                   .customization=${this._config.customization}
                   .SelectOptions=${this.contentSelectOptions}
                   @edit-item=${this._edit_itemDomain}
                   @config-changed=${this._customizationChangedDomain}
                 >
-                </status-items-editor>
+                </status-card-delayed-items-editor>
               </div>
             </ha-expansion-panel>
           `
