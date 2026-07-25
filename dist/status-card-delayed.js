@@ -1,4 +1,4 @@
-const K1 = "v3.3.3", Y1 = {
+const K1 = "v3.3.4", Y1 = {
   version: K1
 };
 /**
@@ -3532,12 +3532,7 @@ let $ = class extends F {
     }));
   }
   getCardSize() {
-    return 2;
-  }
-  getGridOptions() {
-    return {
-      rows: 2
-    };
+    return Math.max(1, Math.ceil(this.scrollHeight / 50));
   }
   shouldUpdate(e) {
     if (!this._config) return !1;

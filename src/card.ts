@@ -141,13 +141,7 @@ export class StatusCard extends LitElement {
   }
 
   getCardSize() {
-    return 2;
-  }
-
-  getGridOptions() {
-    return {
-      rows: 2,
-    };
+    return Math.max(1, Math.ceil(this.scrollHeight / 50));
   }
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {
