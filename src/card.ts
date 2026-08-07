@@ -615,6 +615,24 @@ export class StatusCard extends LitElement {
     );
   }
 
+  private _currentlyActiveEntities(
+    domain: string,
+    deviceClass?: string,
+  ): HassEntity[] {
+    const customization = this.getCustomizationForType(
+      typeKey(domain, deviceClass),
+    );
+
+    return this._baseEntities(domain, deviceClass).filter((entity) =>
+      isEntityActive(
+        entity,
+        domain,
+        deviceClass,
+        customization?.invert === true,
+      ),
+    );
+  }
+
   private _isEntityRecentlyInactive(
     entity: HassEntity,
     recentlyActiveSeconds: number,
@@ -1367,6 +1385,7 @@ export class StatusCard extends LitElement {
       this._recentActivityTick,
     );
     const entities = allGroupEntities.get(ruleset.group_id) || [];
+    const activeBadgeEntities = this._getCurrentlyActiveGroupEntities(ruleset);
 
     if (!entities.length) return html``;
 
@@ -1416,9 +1435,7 @@ export class StatusCard extends LitElement {
         class=${showBadge ? "badge-mode" : ""}
         style=${styleMap(badgeStyles)}
         data-badge=${ifDefined(
-          showBadge && entities.length > 0
-            ? String(entities.length)
-            : undefined,
+          showBadge ? String(activeBadgeEntities.length) : undefined,
         )}
       >
         <div
@@ -1476,6 +1493,32 @@ export class StatusCard extends LitElement {
         this._config,
         this._recentActivityTick,
       ).get(ruleset.group_id) || []
+    );
+  }
+
+  private _getCurrentlyActiveGroupEntities(ruleset: Ruleset): HassEntity[] {
+    const candidatesMap = this._computeGroupCandidatesMemo(
+      this._config.rulesets || [],
+      this.__registryEntities,
+      this.__registryDevices,
+      this.__registryAreas,
+      this.hiddenEntities,
+    );
+    const fakeCard = {
+      __registryEntities: this.__registryEntities,
+      __registryDevices: this.__registryDevices,
+      __registryAreas: this.__registryAreas,
+      hass: { states: this.hass.states },
+    } as StatusCardLike;
+
+    return filterDynamicEntities(
+      fakeCard,
+      ruleset,
+      candidatesMap.get(ruleset.group_id) || [],
+      this.hass.states,
+      this._computeEntityMap(this.__registryEntities),
+      this._computeDeviceMap(this.__registryDevices),
+      this._computeAreaMap(this.__registryAreas),
     );
   }
 
@@ -1655,6 +1698,10 @@ export class StatusCard extends LitElement {
     const deviceClass = (item as DeviceClassItem).deviceClass;
 
     const active = this._isOn(domain, deviceClass);
+    const activeBadgeEntities = this._currentlyActiveEntities(
+      domain,
+      deviceClass,
+    );
     const total = this._totalEntities(domain, deviceClass);
     const showTotal = this._shouldShowTotalEntities(domain, deviceClass);
     const entities = showTotal ? total : active;
@@ -1722,9 +1769,7 @@ export class StatusCard extends LitElement {
         class=${showBadge ? "badge-mode" : ""}
         style=${styleMap(badgeStyles)}
         data-badge=${ifDefined(
-          showBadge && entities.length > 0
-            ? String(entities.length)
-            : undefined,
+          showBadge ? String(activeBadgeEntities.length) : undefined,
         )}
       >
         <div
