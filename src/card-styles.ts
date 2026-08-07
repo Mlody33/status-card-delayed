@@ -92,7 +92,8 @@ export const cardStyles = css`
   }
   @media (prefers-reduced-motion: reduce) {
     [data-animation-key],
-    .exiting-tile {
+    .exiting-tile,
+    .badge-value-changing::after {
       animation: none !important;
       transition: none !important;
     }
@@ -221,6 +222,9 @@ export const cardStyles = css`
     z-index: 1;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
   }
+  ha-tab-group-tab[data-badge].badge-value-changing::after {
+    animation: badge-count-change 280ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
   .person-badge {
     position: absolute;
     top: 0;
@@ -283,6 +287,20 @@ export const cardStyles = css`
       transform: rotate(0deg);
     }
     to { transform: rotate(360deg);}
+  }
+  @keyframes badge-count-change {
+    0% {
+      opacity: 0.45;
+      transform: scale(0.7);
+    }
+    55% {
+      opacity: 1;
+      transform: scale(1.18);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
   }
   @keyframes pulse { 0% { transform: scale(1);}
     50% { transform: scale(1.1);}

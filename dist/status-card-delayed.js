@@ -1878,7 +1878,8 @@ const G = (e, t) => e ? typeof e == "object" ? Object.entries(e).reduce(
   }
   @media (prefers-reduced-motion: reduce) {
     [data-animation-key],
-    .exiting-tile {
+    .exiting-tile,
+    .badge-value-changing::after {
       animation: none !important;
       transition: none !important;
     }
@@ -2007,6 +2008,9 @@ const G = (e, t) => e ? typeof e == "object" ? Object.entries(e).reduce(
     z-index: 1;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
   }
+  ha-tab-group-tab[data-badge].badge-value-changing::after {
+    animation: badge-count-change 280ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
   .person-badge {
     position: absolute;
     top: 0;
@@ -2069,6 +2073,20 @@ const G = (e, t) => e ? typeof e == "object" ? Object.entries(e).reduce(
       transform: rotate(0deg);
     }
     to { transform: rotate(360deg);}
+  }
+  @keyframes badge-count-change {
+    0% {
+      opacity: 0.45;
+      transform: scale(0.7);
+    }
+    55% {
+      opacity: 1;
+      transform: scale(1.18);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
   }
   @keyframes pulse { 0% { transform: scale(1);}
     50% { transform: scale(1.1);}
@@ -3435,7 +3453,7 @@ var cn = Object.defineProperty, ln = Object.getOwnPropertyDescriptor, M = (e, t,
 };
 let A = class extends R {
   constructor() {
-    super(...arguments), this.entitiesByDomain = {}, this.selectedDomain = null, this.selectedDeviceClass = null, this.hiddenEntities = [], this.hiddenLabels = [], this.hiddenAreas = [], this.hide_person = !1, this.hide_content_name = !0, this.list_mode = !1, this.badge_mode = !1, this.no_background = !1, this.badge_color = "", this.badge_text_color = "", this.selectedGroup = null, this._recentActivityTick = 0, this._shouldHideCard = !1, this.__registryEntities = [], this.__registryDevices = [], this.__registryAreas = [], this.__registryFetchInProgress = !1, this._parsedGlobalCss = {}, this._parsedGlobalIconCss = {}, this._parsedGlobalCardCss = {}, this._parsedGlobalNameCss = {}, this._parsedGlobalStateCss = {}, this._inlineCardElementCache = /* @__PURE__ */ new Map(), this._visibleEntityOrder = [], this._tilePositions = /* @__PURE__ */ new Map(), this._exitingTiles = [], this._computeIncludedIdsMemo = V(
+    super(...arguments), this.entitiesByDomain = {}, this.selectedDomain = null, this.selectedDeviceClass = null, this.hiddenEntities = [], this.hiddenLabels = [], this.hiddenAreas = [], this.hide_person = !1, this.hide_content_name = !0, this.list_mode = !1, this.badge_mode = !1, this.no_background = !1, this.badge_color = "", this.badge_text_color = "", this.selectedGroup = null, this._recentActivityTick = 0, this._shouldHideCard = !1, this.__registryEntities = [], this.__registryDevices = [], this.__registryAreas = [], this.__registryFetchInProgress = !1, this._parsedGlobalCss = {}, this._parsedGlobalIconCss = {}, this._parsedGlobalCardCss = {}, this._parsedGlobalNameCss = {}, this._parsedGlobalStateCss = {}, this._inlineCardElementCache = /* @__PURE__ */ new Map(), this._visibleEntityOrder = [], this._badgeValues = /* @__PURE__ */ new Map(), this._tilePositions = /* @__PURE__ */ new Map(), this._exitingTiles = [], this._computeIncludedIdsMemo = V(
       (e, t, i, s, o, n, a, r, c) => Zi(
         e || {},
         t || {},
@@ -3836,14 +3854,32 @@ let A = class extends R {
     });
   }
   disconnectedCallback() {
-    super.disconnectedCallback(), clearTimeout(this._resetDomainTimeout), clearTimeout(this._resetGroupTimeout), clearTimeout(this._recentActivityTimeout), this._tileAnimationFrame !== void 0 && cancelAnimationFrame(this._tileAnimationFrame), this._inlineCardElementCache.clear();
+    super.disconnectedCallback(), clearTimeout(this._resetDomainTimeout), clearTimeout(this._resetGroupTimeout), clearTimeout(this._recentActivityTimeout), this._tileAnimationFrame !== void 0 && cancelAnimationFrame(this._tileAnimationFrame), this._inlineCardElementCache.clear(), this._badgeValues.clear();
+  }
+  _animateBadgeChanges() {
+    const e = this.renderRoot.querySelectorAll(
+      "ha-tab-group-tab[data-animation-key]"
+    ), t = /* @__PURE__ */ new Set();
+    e.forEach((i) => {
+      const s = i.dataset.animationKey;
+      if (!s) return;
+      t.add(s);
+      const o = i.getAttribute("data-badge"), n = this._badgeValues.get(s);
+      this._badgeValues.set(s, o), !(n === void 0 || n === o || o === null || this._prefersReducedMotion()) && (i.classList.remove("badge-value-changing"), i.offsetWidth, i.classList.add("badge-value-changing"), i.addEventListener(
+        "animationend",
+        () => i.classList.remove("badge-value-changing"),
+        { once: !0 }
+      ));
+    });
+    for (const i of this._badgeValues.keys())
+      t.has(i) || this._badgeValues.delete(i);
   }
   willUpdate(e) {
     super.willUpdate(e), !(!this._config || !this.hass) && (this._captureTileAnimations(), (e.has("hass") || e.has("_config") || e.has("hiddenEntities") || e.has("hiddenLabels") || e.has("hiddenAreas")) && (this._processEntities(), this._updateShouldHideCard()));
   }
   updated(e) {
     if (super.updated(e), !this._config || !this.hass) return;
-    this._tileAnimationFrame !== void 0 && cancelAnimationFrame(this._tileAnimationFrame), this._tileAnimationFrame = requestAnimationFrame(() => {
+    this._animateBadgeChanges(), this._tileAnimationFrame !== void 0 && cancelAnimationFrame(this._tileAnimationFrame), this._tileAnimationFrame = requestAnimationFrame(() => {
       this._tileAnimationFrame = void 0, this._playTileAnimations();
     }), this._ensureRegistryData(), this._scheduleRecentActivityUpdate();
     const t = e.get("hass"), i = e.get("_config");
