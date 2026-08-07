@@ -83,6 +83,8 @@ export class StatusCardEditor extends LitElement {
       inline_feature: config.inline_feature ?? false,
       ungroup_entities: config.ungroup_entities ?? false,
       hide_content_name: config.hide_content_name ?? false,
+      badge_only_active_entities:
+        config.badge_only_active_entities ?? true,
       customization: config.customization ?? [],
     };
 

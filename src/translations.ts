@@ -134,6 +134,8 @@ const LABEL_MAP: Record<string, (hass: HomeAssistant) => string> = {
   hide_card_if_empty: (hass) =>
     `${hass.localize("ui.common.hide")} Status Card Delayed if empty`,
   badge_mode: (hass) => `${hass.localize("ui.common.enable")} Badge `,
+  badge_only_active_entities: () =>
+    "Count only currently active entities in badge",
   badge_color: (hass) =>
     `Badge ${hass.localize("ui.panel.lovelace.editor.card.tile.color")}`,
   badge_text_color: (hass) =>

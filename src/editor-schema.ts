@@ -212,6 +212,10 @@ export function getAppearanceSchema(
             type: "grid",
             schema: [
               {
+                name: "badge_only_active_entities",
+                selector: { boolean: {} },
+              },
+              {
                 name: "badge_color",
                 selector: {
                   ui_color: { default_color: "state", include_state: true },

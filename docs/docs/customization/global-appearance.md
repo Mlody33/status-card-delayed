@@ -14,6 +14,7 @@ Global settings that apply to all items.
 - **Enable Total Entities:** Will show all entities no matter the state. This wilkl also change the Popup behaviour to show all entities.
 - **Sort Entities by Activation Time:** Keep visible entities in their activation order. Newly activated entities are appended at the bottom.
 - **Show Recently Active Entities:** Keep entities visible for the configured number of seconds after they become inactive. Set to `0` to disable.
+- **Count Only Currently Active Entities in Badge:** Exclude recently inactive entities from badge counts. Enabled by default.
 - **Wrap Content:** Multi-line mode instead of scrolling/swiping
 - **Hide Card If Empty:** Hide card completely when no entities are present
 - **Hide Background:** Hide background/border

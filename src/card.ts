@@ -1385,7 +1385,6 @@ export class StatusCard extends LitElement {
       this._recentActivityTick,
     );
     const entities = allGroupEntities.get(ruleset.group_id) || [];
-    const activeBadgeEntities = this._getCurrentlyActiveGroupEntities(ruleset);
 
     if (!entities.length) return html``;
 
@@ -1409,6 +1408,11 @@ export class StatusCard extends LitElement {
     );
 
     const customization = this.getCustomizationForType(groupId);
+    const badgeOnlyActiveEntities =
+      this._config.badge_only_active_entities ?? true;
+    const badgeCount = badgeOnlyActiveEntities
+      ? this._getCurrentlyActiveGroupEntities(ruleset).length
+      : entities.length;
 
     const handler = this._handleGroupAction(groupId, index, entities);
 
@@ -1435,7 +1439,7 @@ export class StatusCard extends LitElement {
         class=${showBadge ? "badge-mode" : ""}
         style=${styleMap(badgeStyles)}
         data-badge=${ifDefined(
-          showBadge ? String(activeBadgeEntities.length) : undefined,
+          showBadge ? String(badgeCount) : undefined,
         )}
       >
         <div
@@ -1698,10 +1702,6 @@ export class StatusCard extends LitElement {
     const deviceClass = (item as DeviceClassItem).deviceClass;
 
     const active = this._isOn(domain, deviceClass);
-    const activeBadgeEntities = this._currentlyActiveEntities(
-      domain,
-      deviceClass,
-    );
     const total = this._totalEntities(domain, deviceClass);
     const showTotal = this._shouldShowTotalEntities(domain, deviceClass);
     const entities = showTotal ? total : active;
@@ -1716,6 +1716,11 @@ export class StatusCard extends LitElement {
     const customization = this.getCustomizationForType(
       typeKey(domain, deviceClass),
     );
+    const badgeOnlyActiveEntities =
+      this._config.badge_only_active_entities ?? true;
+    const badgeCount = badgeOnlyActiveEntities
+      ? this._currentlyActiveEntities(domain, deviceClass).length
+      : entities.length;
 
     const handler = this._handleDomainAction(domain, deviceClass);
     const {
@@ -1769,7 +1774,7 @@ export class StatusCard extends LitElement {
         class=${showBadge ? "badge-mode" : ""}
         style=${styleMap(badgeStyles)}
         data-badge=${ifDefined(
-          showBadge ? String(activeBadgeEntities.length) : undefined,
+          showBadge ? String(badgeCount) : undefined,
         )}
       >
         <div

@@ -72,6 +72,7 @@ square: false # renders card items as a rounded square instaed of a circle
 show_total_entities: false # lets you choose between showing only 'on' entities or all entities that belongs to a domain
 sort_entities: false # keeps visible entities in activation order; newly activated entities appear at the bottom
 recently_active_seconds: 0 # also shows entities that became inactive within the last X seconds (0 disables it)
+badge_only_active_entities: true # excludes recently inactive entities from badge counts
 theme: optional # choose a theme to sytle your card
 columns: 4 # defines how much columns are used for more info view (min:1; max:4; default is 4)
 no_scroll: false # lets you choose between multine (without scrolling) or single line (with scrolling)
