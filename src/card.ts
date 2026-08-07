@@ -116,6 +116,7 @@ export class StatusCard extends LitElement {
   private _tileAnimationFrame?: number;
 
   private static readonly TILE_ANIMATION_DURATION = 480;
+  private static readonly TILE_FADE_DURATION = 220;
   private static readonly TILE_ANIMATION_EASING =
     "cubic-bezier(0.22, 1, 0.36, 1)";
 
@@ -240,18 +241,13 @@ export class StatusCard extends LitElement {
         if (!previous) {
           tile.animate(
             [
-              {
-                opacity: 0,
-                transform: "translateY(16px) scale(0.7)",
-                filter: "blur(4px)",
-              },
-              {
-                opacity: 1,
-                transform: "translateY(0) scale(1)",
-                filter: "blur(0)",
-              },
+              { opacity: 0 },
+              { opacity: 1 },
             ],
-            { duration, easing },
+            {
+              duration: StatusCard.TILE_FADE_DURATION,
+              easing: "ease-out",
+            },
           );
           return;
         }
@@ -274,18 +270,14 @@ export class StatusCard extends LitElement {
     this._exitingTiles.splice(0).forEach((tile) => {
       const animation = tile.animate(
         [
-          {
-            opacity: 1,
-            transform: "translateY(0) scale(1)",
-            filter: "blur(0)",
-          },
-          {
-            opacity: 0,
-            transform: "translateY(-16px) scale(0.7)",
-            filter: "blur(4px)",
-          },
+          { opacity: 1 },
+          { opacity: 0 },
         ],
-        { duration, easing, fill: "forwards" },
+        {
+          duration: StatusCard.TILE_FADE_DURATION,
+          easing: "ease-out",
+          fill: "forwards",
+        },
       );
       animation.finished.then(
         () => tile.remove(),
