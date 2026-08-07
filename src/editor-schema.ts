@@ -202,6 +202,10 @@ export function getAppearanceSchema(
           selector: { boolean: {} },
         },
         { name: "badge_mode", selector: { boolean: {} } },
+        {
+          name: "badge_only_active_entities",
+          selector: { boolean: {} },
+        },
         { name: "no_background", selector: { boolean: {} } },
       ],
     },
@@ -211,10 +215,6 @@ export function getAppearanceSchema(
             name: "",
             type: "grid",
             schema: [
-              {
-                name: "badge_only_active_entities",
-                selector: { boolean: {} },
-              },
               {
                 name: "badge_color",
                 selector: {
