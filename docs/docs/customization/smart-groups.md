@@ -55,6 +55,7 @@ This will let you add a group instead of a single entity.
 | **Name** | Display name |
 | **Icon** | Change icon |
 | **Color** | Change color |
+| **Show Recently Active Entities** | Keep entities that just stopped matching a `state` rule visible for the configured number of minutes |
 | **Tap / Hold / Double Tap** | Individual actions |
 
 <img class="doc-img-responsive" src="../img/smart_groups.png" alt="Smart Groups Editor">

@@ -75,7 +75,8 @@ export const filterDynamicEntities = (
   states: { [entity_id: string]: HassEntity },
   entityMap: Map<string, EntityRegistryEntry>,
   deviceMap: Map<string, DeviceRegistryEntry>,
-  areaMap: Map<string, AreaRegistryEntry>
+  areaMap: Map<string, AreaRegistryEntry>,
+  includeRecentlyInactive?: (entity: HassEntity) => boolean,
 ): HassEntity[] => {
   let filters: Rule[] = [];
   if (Array.isArray(ruleset.filters)) {
@@ -108,13 +109,21 @@ export const filterDynamicEntities = (
     .map((id) => states[id])
     .filter((entity): entity is HassEntity => {
       if (!entity) return false;
-      return filters.every((rule) =>
-        matchesRule(card, entity, rule, {
+      return filters.every((rule) => {
+        const matches = matchesRule(card, entity, rule, {
           entityMap,
           deviceMap,
           areaMap,
-        })
-      );
+        });
+
+        // A smart group usually uses a state rule to select active entities.
+        // Keep a recently deactivated entity in the group while still requiring
+        // every other (area, domain, attribute, etc.) rule to match.
+        return (
+          matches ||
+          (rule.key === "state" && includeRecentlyInactive?.(entity) === true)
+        );
+      });
     });
 };
 

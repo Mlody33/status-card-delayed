@@ -319,20 +319,20 @@ export const getItemAppearanceSchema = (
             ? ([
                 { name: "show_total_number", selector: { boolean: {} } },
                 { name: "show_total_entities", selector: { boolean: {} } },
-                {
-                  name: "recently_active_minutes",
-                  selector: {
-                    number: {
-                      min: 0,
-                      max: 1440,
-                      step: 1,
-                      mode: "box",
-                      unit_of_measurement: "min",
-                    },
-                  },
-                },
               ] as const)
             : []),
+          {
+            name: "recently_active_minutes",
+            selector: {
+              number: {
+                min: 0,
+                max: 1440,
+                step: 1,
+                mode: "box",
+                unit_of_measurement: "min",
+              },
+            },
+          },
         ],
       },
       ...(!isGroup

@@ -51,7 +51,6 @@ import {
   CardElementCache,
 } from "./ha/types";
 import {
-  filterEntitiesByRuleset,
   filterStaticEntities,
   filterDynamicEntities,
 } from "./smart_groups";
@@ -317,6 +316,8 @@ export class StatusCard extends LitElement {
       entities: EntityRegistryEntry[],
       devices: DeviceRegistryEntry[],
       areas: AreaRegistryEntry[],
+      config: LovelaceCardConfig,
+      _recentActivityTick: number,
     ): Map<string, HassEntity[]> => {
       const map = new Map();
       const fakeCard = {
@@ -332,6 +333,11 @@ export class StatusCard extends LitElement {
 
       rulesets.forEach((rs) => {
         const candidates = candidatesMap.get(rs.group_id) || [];
+        const recentlyActiveMinutes = Number(
+          this.getCustomizationForType(rs.group_id)?.recently_active_minutes ??
+            config.recently_active_minutes ??
+            0,
+        );
         const results = filterDynamicEntities(
           fakeCard,
           rs,
@@ -340,6 +346,11 @@ export class StatusCard extends LitElement {
           entityMap,
           deviceMap,
           areaMap,
+          (entity) =>
+            this._isEntityRecentlyInactive(
+              entity,
+              recentlyActiveMinutes,
+            ),
         );
         map.set(rs.group_id, results);
       });
@@ -427,6 +438,43 @@ export class StatusCard extends LitElement {
 
     return ents.filter((entity) =>
       this.isEntityVisibleAsActive(entity, domain, deviceClass),
+    );
+  }
+
+  private _isEntityRecentlyInactive(
+    entity: HassEntity,
+    recentlyActiveMinutes: number,
+    now = Date.now(),
+  ): boolean {
+    if (
+      !Number.isFinite(recentlyActiveMinutes) ||
+      recentlyActiveMinutes <= 0 ||
+      entity.state === "unavailable" ||
+      entity.state === "unknown"
+    ) {
+      return false;
+    }
+
+    const domain = computeDomain(entity.entity_id);
+    const deviceClass = entity.attributes.device_class;
+    const customization = this.getCustomizationForType(
+      typeKey(domain, deviceClass),
+    );
+    if (
+      isEntityActive(
+        entity,
+        domain,
+        deviceClass,
+        customization?.invert === true,
+      )
+    ) {
+      return false;
+    }
+
+    const lastChanged = Date.parse(entity.last_changed);
+    return (
+      Number.isFinite(lastChanged) &&
+      now - lastChanged < recentlyActiveMinutes * 60 * 1000
     );
   }
 
@@ -531,16 +579,7 @@ export class StatusCard extends LitElement {
         (g) => g.group_id === groupId,
       );
       if (ruleset) {
-        const entityMap = this._computeEntityMap(this.__registryEntities);
-        const deviceMap = this._computeDeviceMap(this.__registryDevices);
-        const areaMap = this._computeAreaMap(this.__registryAreas);
-        allEntities = filterEntitiesByRuleset(
-          this,
-          ruleset,
-          entityMap,
-          deviceMap,
-          areaMap,
-        );
+        allEntities = this._getGroupEntities(ruleset);
         entities = allEntities;
       } else {
         entities = [];
@@ -713,6 +752,8 @@ export class StatusCard extends LitElement {
       this.__registryEntities,
       this.__registryDevices,
       this.__registryAreas,
+      this._config,
+      this._recentActivityTick,
     );
 
     const hasGroupContent = this.getGroupItems().some((g) => {
@@ -786,6 +827,33 @@ export class StatusCard extends LitElement {
       const expiration = lastChanged + minutes * 60 * 1000;
       if (expiration > now && expiration < nextExpiration) {
         nextExpiration = expiration;
+      }
+    }
+
+    // Smart groups may have their own delay. Their cached results must be
+    // refreshed when the last recently inactive entity leaves the grace period.
+    const groupDurations = new Set<number>();
+    for (const ruleset of this._config.rulesets || []) {
+      const minutes = Number(
+        this.getCustomizationForType(ruleset.group_id)
+          ?.recently_active_minutes ??
+          this._config.recently_active_minutes ??
+          0,
+      );
+      if (Number.isFinite(minutes) && minutes > 0) {
+        groupDurations.add(minutes);
+      }
+    }
+
+    for (const minutes of groupDurations) {
+      for (const entity of Object.values(this.hass.states)) {
+        if (!this._isEntityRecentlyInactive(entity, minutes, now)) continue;
+
+        const expiration =
+          Date.parse(entity.last_changed) + minutes * 60 * 1000;
+        if (expiration > now && expiration < nextExpiration) {
+          nextExpiration = expiration;
+        }
       }
     }
 
@@ -1105,6 +1173,8 @@ export class StatusCard extends LitElement {
       this.__registryEntities,
       this.__registryDevices,
       this.__registryAreas,
+      this._config,
+      this._recentActivityTick,
     );
     const entities = allGroupEntities.get(ruleset.group_id) || [];
 
@@ -1212,6 +1282,8 @@ export class StatusCard extends LitElement {
         this.__registryEntities,
         this.__registryDevices,
         this.__registryAreas,
+        this._config,
+        this._recentActivityTick,
       ).get(ruleset.group_id) || []
     );
   }
