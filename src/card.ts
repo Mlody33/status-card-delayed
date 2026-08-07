@@ -111,6 +111,169 @@ export class StatusCard extends LitElement {
   private _recentActivityTimeout?: ReturnType<typeof setTimeout>;
   private _inlineCardElementCache = new Map<string, CardElementCache>();
   private _visibleEntityOrder: string[] = [];
+  private _tilePositions = new Map<string, DOMRect>();
+  private _exitingTiles: HTMLElement[] = [];
+
+  private static readonly TILE_ANIMATION_DURATION = 260;
+  private static readonly TILE_ANIMATION_EASING =
+    "cubic-bezier(0.2, 0.8, 0.2, 1)";
+
+  private _prefersReducedMotion(): boolean {
+    return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+  }
+
+  private _animationKeyForItem(item: AnyItem): string {
+    switch (item.type) {
+      case "extra":
+        return `extra:${item.panel}`;
+      case "domain":
+        return `domain:${item.domain}`;
+      case "deviceClass":
+        return `device-class:${item.domain}:${item.deviceClass}`;
+      case "group":
+        return `group:${item.group_id}`;
+    }
+  }
+
+  private _isGroupedItemVisible(item: AnyItem): boolean {
+    if (item.type === "extra") {
+      return !!this.hass.states[item.panel];
+    }
+    if (item.type === "group") {
+      return this._getGroupEntities(item.ruleset).length > 0;
+    }
+
+    const deviceClass =
+      item.type === "deviceClass" ? item.deviceClass : undefined;
+    return (
+      (this._shouldShowTotalEntities(item.domain, deviceClass)
+        ? this._totalEntities(item.domain, deviceClass)
+        : this._isOn(item.domain, deviceClass)
+      ).length > 0
+    );
+  }
+
+  private _currentAnimatedKeys(): Set<string> {
+    if (!this._config || !this.hass) return new Set();
+
+    const extra = this.getExtraItems();
+    const group = this.getGroupItems();
+    const domain = this.getDomainItems();
+    const deviceClass = this.getDeviceClassItems();
+    const items = this._computeSortedEntities(extra, group, domain, deviceClass);
+    const people = this.getPersonItems();
+
+    if (this._config.ungroup_entities) {
+      return new Set(
+        this._getInlineEntities(people, items).map(
+          ({ entity }) => `entity:${entity.entity_id}`,
+        ),
+      );
+    }
+
+    return new Set([
+      ...people.map((entity) => `person:${entity.entity_id}`),
+      ...items
+        .filter((item) => this._isGroupedItemVisible(item))
+        .map((item) => this._animationKeyForItem(item)),
+    ]);
+  }
+
+  private _captureTileAnimations(): void {
+    this._tilePositions.clear();
+    if (this._prefersReducedMotion()) return;
+
+    const nextKeys = this._currentAnimatedKeys();
+    const hostRect = this.getBoundingClientRect();
+    const animationLayer = this.renderRoot.querySelector<HTMLElement>(
+      ".tile-animation-layer",
+    );
+
+    this.renderRoot
+      .querySelectorAll<HTMLElement>("[data-animation-key]")
+      .forEach((tile) => {
+        const key = tile.dataset.animationKey;
+        if (!key) return;
+
+        const rect = tile.getBoundingClientRect();
+        this._tilePositions.set(key, rect);
+        if (nextKeys.has(key) || !animationLayer) return;
+
+        const ghost = document.createElement("div");
+        ghost.className = "exiting-tile";
+        Object.assign(ghost.style, {
+          left: `${rect.left - hostRect.left}px`,
+          top: `${rect.top - hostRect.top}px`,
+          width: `${rect.width}px`,
+          height: `${rect.height}px`,
+        });
+
+        if (tile.classList.contains("inline-entity-card")) {
+          const card = tile.firstElementChild;
+          if (card) ghost.append(card);
+        } else {
+          ghost.append(tile.cloneNode(true));
+        }
+
+        animationLayer.append(ghost);
+        this._exitingTiles.push(ghost);
+      });
+  }
+
+  private _playTileAnimations(): void {
+    if (this._prefersReducedMotion()) {
+      this._exitingTiles.splice(0).forEach((tile) => tile.remove());
+      return;
+    }
+
+    const duration = StatusCard.TILE_ANIMATION_DURATION;
+    const easing = StatusCard.TILE_ANIMATION_EASING;
+
+    this.renderRoot
+      .querySelectorAll<HTMLElement>("[data-animation-key]")
+      .forEach((tile) => {
+        const key = tile.dataset.animationKey;
+        const previous = key ? this._tilePositions.get(key) : undefined;
+        const current = tile.getBoundingClientRect();
+
+        if (!previous) {
+          tile.animate(
+            [
+              { opacity: 0, transform: "scale(0.82)" },
+              { opacity: 1, transform: "scale(1)" },
+            ],
+            { duration, easing },
+          );
+          return;
+        }
+
+        const deltaX = previous.left - current.left;
+        const deltaY = previous.top - current.top;
+        if (Math.abs(deltaX) < 0.5 && Math.abs(deltaY) < 0.5) return;
+
+        tile.animate(
+          [
+            { transform: `translate(${deltaX}px, ${deltaY}px)` },
+            { transform: "translate(0, 0)" },
+          ],
+          { duration, easing },
+        );
+      });
+
+    this._exitingTiles.splice(0).forEach((tile) => {
+      const animation = tile.animate(
+        [
+          { opacity: 1, transform: "scale(1)" },
+          { opacity: 0, transform: "scale(0.82)" },
+        ],
+        { duration, easing, fill: "forwards" },
+      );
+      animation.finished.then(
+        () => tile.remove(),
+        () => tile.remove(),
+      );
+    });
+  }
 
   private _ensureRegistryData(): void {
     if (
@@ -634,6 +797,8 @@ export class StatusCard extends LitElement {
 
     if (!this._config || !this.hass) return;
 
+    this._captureTileAnimations();
+
     if (
       changedProps.has("hass") ||
       changedProps.has("_config") ||
@@ -650,6 +815,8 @@ export class StatusCard extends LitElement {
     super.updated(changedProps);
 
     if (!this._config || !this.hass) return;
+
+    this._playTileAnimations();
 
     this._ensureRegistryData();
     this._scheduleRecentActivityUpdate();
@@ -1092,6 +1259,7 @@ export class StatusCard extends LitElement {
       <ha-tab-group-tab
         slot="nav"
         panel=${panel}
+        data-animation-key=${this._animationKeyForItem(item)}
         @action=${handler}
         .actionHandler=${ah}
         class=${showBadge ? "badge-mode" : ""}
@@ -1220,6 +1388,7 @@ export class StatusCard extends LitElement {
       <ha-tab-group-tab
         slot="nav"
         panel=${"group-" + index}
+        data-animation-key=${`group:${ruleset.group_id}`}
         @action=${handler}
         .actionHandler=${ah}
         class=${showBadge ? "badge-mode" : ""}
@@ -1525,6 +1694,7 @@ export class StatusCard extends LitElement {
       <ha-tab-group-tab
         slot="nav"
         panel=${deviceClass || domain}
+        data-animation-key=${this._animationKeyForItem(item)}
         @action=${handler}
         .actionHandler=${ah}
         class=${showBadge ? "badge-mode" : ""}
@@ -1618,6 +1788,7 @@ export class StatusCard extends LitElement {
     return html`
       <ha-tab-group-tab
         slot="nav"
+        data-animation-key=${`person:${entity.entity_id}`}
         @action=${this._handlePersonAction(entity)}
         .actionHandler=${this._computeActionHandler(false, false)}
         class=${this.badge_mode ? "badge-mode" : ""}
@@ -1697,6 +1868,9 @@ export class StatusCard extends LitElement {
     personEntities: HassEntity[],
     items: AnyItem[],
   ): TemplateResult {
+    const visibleItems = items.filter((item) =>
+      this._isGroupedItemVisible(item),
+    );
     const classes = {
       "no-scroll": !!this._config.no_scroll,
       "badge-mode": this.badge_mode,
@@ -1716,7 +1890,7 @@ export class StatusCard extends LitElement {
             (entity) => this._renderPersonTab(entity),
           )}
           ${repeat(
-            items,
+            visibleItems,
             (item) =>
               item.type === "extra"
                 ? item.panel
@@ -1749,29 +1923,34 @@ export class StatusCard extends LitElement {
     const inlineEntities = this._sortInlineEntitiesByActivation(
       this._getInlineEntities(personEntities, sorted),
     );
-    if (this._shouldHideCard) {
-      return html``;
-    }
-
-    if (!this._config.ungroup_entities) {
-      return this._renderGroupedEntities(personEntities, sorted);
+    let content: TemplateResult = html``;
+    if (!this._shouldHideCard) {
+      content = !this._config.ungroup_entities
+        ? this._renderGroupedEntities(personEntities, sorted)
+        : html`
+            <div
+              class="inline-entity-grid"
+              style=${styleMap(this._parsedGlobalCardCss)}
+            >
+              ${repeat(
+                inlineEntities,
+                ({ entity }) => entity.entity_id,
+                ({ entity, contextKey }) => html`
+                  <div
+                    class="inline-entity-card"
+                    data-animation-key=${`entity:${entity.entity_id}`}
+                  >
+                    ${this._getOrCreateInlineCard(contextKey, entity)}
+                  </div>
+                `,
+              )}
+            </div>
+          `;
     }
 
     return html`
-      <div
-        class="inline-entity-grid"
-        style=${styleMap(this._parsedGlobalCardCss)}
-      >
-        ${repeat(
-          inlineEntities,
-          ({ entity }) => entity.entity_id,
-          ({ entity, contextKey }) => html`
-            <div class="inline-entity-card">
-              ${this._getOrCreateInlineCard(contextKey, entity)}
-            </div>
-          `,
-        )}
-      </div>
+      <div class="tile-animation-layer" aria-hidden="true"></div>
+      ${content}
     `;
   }
 

@@ -69,6 +69,34 @@ export const getParsedCss = (
 };
 
 export const cardStyles = css`
+  :host {
+    position: relative;
+  }
+  .tile-animation-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    pointer-events: none;
+    overflow: visible;
+  }
+  .exiting-tile {
+    position: absolute;
+    box-sizing: border-box;
+    transform-origin: center;
+    pointer-events: none;
+  }
+  .exiting-tile > * {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    [data-animation-key],
+    .exiting-tile {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
   :host-context(hui-badge[preview]) {
     max-width: 500px;
     overflow: hidden;
