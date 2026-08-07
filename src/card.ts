@@ -113,10 +113,11 @@ export class StatusCard extends LitElement {
   private _visibleEntityOrder: string[] = [];
   private _tilePositions = new Map<string, DOMRect>();
   private _exitingTiles: HTMLElement[] = [];
+  private _tileAnimationFrame?: number;
 
-  private static readonly TILE_ANIMATION_DURATION = 260;
+  private static readonly TILE_ANIMATION_DURATION = 480;
   private static readonly TILE_ANIMATION_EASING =
-    "cubic-bezier(0.2, 0.8, 0.2, 1)";
+    "cubic-bezier(0.22, 1, 0.36, 1)";
 
   private _prefersReducedMotion(): boolean {
     return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
@@ -239,8 +240,16 @@ export class StatusCard extends LitElement {
         if (!previous) {
           tile.animate(
             [
-              { opacity: 0, transform: "scale(0.82)" },
-              { opacity: 1, transform: "scale(1)" },
+              {
+                opacity: 0,
+                transform: "translateY(16px) scale(0.7)",
+                filter: "blur(4px)",
+              },
+              {
+                opacity: 1,
+                transform: "translateY(0) scale(1)",
+                filter: "blur(0)",
+              },
             ],
             { duration, easing },
           );
@@ -253,8 +262,10 @@ export class StatusCard extends LitElement {
 
         tile.animate(
           [
-            { transform: `translate(${deltaX}px, ${deltaY}px)` },
-            { transform: "translate(0, 0)" },
+            {
+              transform: `translate(${deltaX}px, ${deltaY}px) scale(0.96)`,
+            },
+            { transform: "translate(0, 0) scale(1)" },
           ],
           { duration, easing },
         );
@@ -263,8 +274,16 @@ export class StatusCard extends LitElement {
     this._exitingTiles.splice(0).forEach((tile) => {
       const animation = tile.animate(
         [
-          { opacity: 1, transform: "scale(1)" },
-          { opacity: 0, transform: "scale(0.82)" },
+          {
+            opacity: 1,
+            transform: "translateY(0) scale(1)",
+            filter: "blur(0)",
+          },
+          {
+            opacity: 0,
+            transform: "translateY(-16px) scale(0.7)",
+            filter: "blur(4px)",
+          },
         ],
         { duration, easing, fill: "forwards" },
       );
@@ -789,6 +808,9 @@ export class StatusCard extends LitElement {
     clearTimeout(this._resetDomainTimeout);
     clearTimeout(this._resetGroupTimeout);
     clearTimeout(this._recentActivityTimeout);
+    if (this._tileAnimationFrame !== undefined) {
+      cancelAnimationFrame(this._tileAnimationFrame);
+    }
     this._inlineCardElementCache.clear();
   }
 
@@ -816,7 +838,15 @@ export class StatusCard extends LitElement {
 
     if (!this._config || !this.hass) return;
 
-    this._playTileAnimations();
+    if (this._tileAnimationFrame !== undefined) {
+      cancelAnimationFrame(this._tileAnimationFrame);
+    }
+    // Slotted HA tabs recalculate their layout after Lit's update. Waiting for
+    // the next paint gives FLIP the final positions instead of the old ones.
+    this._tileAnimationFrame = requestAnimationFrame(() => {
+      this._tileAnimationFrame = undefined;
+      this._playTileAnimations();
+    });
 
     this._ensureRegistryData();
     this._scheduleRecentActivityUpdate();
