@@ -1,6 +1,7 @@
 import { LitElement, html, css, PropertyValues, TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { repeat } from "lit/directives/repeat.js";
+import { keyed } from "lit/directives/keyed.js";
 import { classMap } from "lit/directives/class-map.js";
 import { styleMap } from "lit/directives/style-map.js";
 import { ifDefined } from "lit/directives/if-defined.js";
@@ -111,7 +112,6 @@ export class StatusCard extends LitElement {
   private _recentActivityTimeout?: ReturnType<typeof setTimeout>;
   private _inlineCardElementCache = new Map<string, CardElementCache>();
   private _visibleEntityOrder: string[] = [];
-  private _badgeValues = new Map<string, string | null>();
   private _tilePositions = new Map<string, DOMRect>();
   private _exitingTiles: HTMLElement[] = [];
   private _tileAnimationFrame?: number;
@@ -823,46 +823,6 @@ export class StatusCard extends LitElement {
       cancelAnimationFrame(this._tileAnimationFrame);
     }
     this._inlineCardElementCache.clear();
-    this._badgeValues.clear();
-  }
-
-  private _animateBadgeChanges(): void {
-    const tabs = this.renderRoot.querySelectorAll<HTMLElement>(
-      "ha-tab-group-tab[data-animation-key]",
-    );
-    const currentKeys = new Set<string>();
-
-    tabs.forEach((tab) => {
-      const key = tab.dataset.animationKey;
-      if (!key) return;
-
-      currentKeys.add(key);
-      const currentValue = tab.getAttribute("data-badge");
-      const previousValue = this._badgeValues.get(key);
-      this._badgeValues.set(key, currentValue);
-
-      if (
-        previousValue === undefined ||
-        previousValue === currentValue ||
-        currentValue === null ||
-        this._prefersReducedMotion()
-      ) {
-        return;
-      }
-
-      tab.classList.remove("badge-value-changing");
-      void tab.offsetWidth;
-      tab.classList.add("badge-value-changing");
-      tab.addEventListener(
-        "animationend",
-        () => tab.classList.remove("badge-value-changing"),
-        { once: true },
-      );
-    });
-
-    for (const key of this._badgeValues.keys()) {
-      if (!currentKeys.has(key)) this._badgeValues.delete(key);
-    }
   }
 
   protected willUpdate(changedProps: PropertyValues): void {
@@ -888,8 +848,6 @@ export class StatusCard extends LitElement {
     super.updated(changedProps);
 
     if (!this._config || !this.hass) return;
-
-    this._animateBadgeChanges();
 
     if (this._tileAnimationFrame !== undefined) {
       cancelAnimationFrame(this._tileAnimationFrame);
@@ -1481,10 +1439,13 @@ export class StatusCard extends LitElement {
         .actionHandler=${ah}
         class=${showBadge ? "badge-mode" : ""}
         style=${styleMap(badgeStyles)}
-        data-badge=${ifDefined(
-          showBadge && badgeCount > 0 ? String(badgeCount) : undefined,
-        )}
       >
+        ${showBadge && badgeCount > 0
+          ? keyed(
+              badgeCount,
+              html`<span class="count-badge">${badgeCount}</span>`,
+            )
+          : ""}
         <div
           class="entity ${classMap(contentClasses)}"
           style=${styleMap(buttonStyles)}
@@ -1816,10 +1777,13 @@ export class StatusCard extends LitElement {
         .actionHandler=${ah}
         class=${showBadge ? "badge-mode" : ""}
         style=${styleMap(badgeStyles)}
-        data-badge=${ifDefined(
-          showBadge && badgeCount > 0 ? String(badgeCount) : undefined,
-        )}
       >
+        ${showBadge && badgeCount > 0
+          ? keyed(
+              badgeCount,
+              html`<span class="count-badge">${badgeCount}</span>`,
+            )
+          : ""}
         <div
           class="entity ${classMap(contentClasses)}"
           style=${styleMap(buttonStyles)}

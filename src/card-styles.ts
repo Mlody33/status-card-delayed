@@ -93,7 +93,7 @@ export const cardStyles = css`
   @media (prefers-reduced-motion: reduce) {
     [data-animation-key],
     .exiting-tile,
-    .badge-value-changing::after {
+    .count-badge {
       animation: none !important;
       transition: none !important;
     }
@@ -222,7 +222,24 @@ export const cardStyles = css`
     z-index: 1;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
   }
-  ha-tab-group-tab[data-badge].badge-value-changing::after {
+  .count-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    background-color: var(--status-card-delayed-badge-color, var(--primary-color));
+    color: var(--status-card-delayed-badge-text-color, var(--text-primary-color));
+    font-size: 0.75rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    box-sizing: border-box;
+    z-index: 1;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
     animation: badge-count-change 280ms cubic-bezier(0.22, 1, 0.36, 1);
   }
   .person-badge {
