@@ -515,9 +515,9 @@ export class StatusCard extends LitElement {
 
       rulesets.forEach((rs) => {
         const candidates = candidatesMap.get(rs.group_id) || [];
-        const recentlyActiveMinutes = Number(
-          this.getCustomizationForType(rs.group_id)?.recently_active_minutes ??
-            config.recently_active_minutes ??
+        const recentlyActiveSeconds = Number(
+          this.getCustomizationForType(rs.group_id)?.recently_active_seconds ??
+            config.recently_active_seconds ??
             0,
         );
         const results = filterDynamicEntities(
@@ -531,7 +531,7 @@ export class StatusCard extends LitElement {
           (entity) =>
             this._isEntityRecentlyInactive(
               entity,
-              recentlyActiveMinutes,
+              recentlyActiveSeconds,
             ),
         );
         map.set(rs.group_id, results);
@@ -625,12 +625,12 @@ export class StatusCard extends LitElement {
 
   private _isEntityRecentlyInactive(
     entity: HassEntity,
-    recentlyActiveMinutes: number,
+    recentlyActiveSeconds: number,
     now = Date.now(),
   ): boolean {
     if (
-      !Number.isFinite(recentlyActiveMinutes) ||
-      recentlyActiveMinutes <= 0 ||
+      !Number.isFinite(recentlyActiveSeconds) ||
+      recentlyActiveSeconds <= 0 ||
       entity.state === "unavailable" ||
       entity.state === "unknown"
     ) {
@@ -656,7 +656,7 @@ export class StatusCard extends LitElement {
     const lastChanged = Date.parse(entity.last_changed);
     return (
       Number.isFinite(lastChanged) &&
-      now - lastChanged < recentlyActiveMinutes * 60 * 1000
+      now - lastChanged < recentlyActiveSeconds * 1000
     );
   }
 
@@ -671,9 +671,9 @@ export class StatusCard extends LitElement {
     const key = typeKey(effectiveDomain, effectiveDeviceClass);
     const customization = this.getCustomizationForType(key);
     const isInverted = customization?.invert === true;
-    const recentlyActiveMinutes =
-      customization?.recently_active_minutes ??
-      this._config.recently_active_minutes ??
+    const recentlyActiveSeconds =
+      customization?.recently_active_seconds ??
+      this._config.recently_active_seconds ??
       0;
 
     return isEntityActiveOrRecentlyActive(
@@ -681,7 +681,7 @@ export class StatusCard extends LitElement {
       effectiveDomain,
       effectiveDeviceClass,
       isInverted,
-      recentlyActiveMinutes,
+      recentlyActiveSeconds,
     );
   }
 
@@ -1008,12 +1008,12 @@ export class StatusCard extends LitElement {
       const customization = this.getCustomizationForType(
         typeKey(domain, deviceClass),
       );
-      const minutes = Number(
-        customization?.recently_active_minutes ??
-          this._config.recently_active_minutes ??
+      const seconds = Number(
+        customization?.recently_active_seconds ??
+          this._config.recently_active_seconds ??
           0,
       );
-      if (!Number.isFinite(minutes) || minutes <= 0) continue;
+      if (!Number.isFinite(seconds) || seconds <= 0) continue;
 
       const isInverted = customization?.invert === true;
       if (isEntityActive(entity, domain, deviceClass, isInverted)) continue;
@@ -1021,7 +1021,7 @@ export class StatusCard extends LitElement {
       const lastChanged = Date.parse(entity.last_changed);
       if (!Number.isFinite(lastChanged)) continue;
 
-      const expiration = lastChanged + minutes * 60 * 1000;
+      const expiration = lastChanged + seconds * 1000;
       if (expiration > now && expiration < nextExpiration) {
         nextExpiration = expiration;
       }
@@ -1031,23 +1031,23 @@ export class StatusCard extends LitElement {
     // refreshed when the last recently inactive entity leaves the grace period.
     const groupDurations = new Set<number>();
     for (const ruleset of this._config.rulesets || []) {
-      const minutes = Number(
+      const seconds = Number(
         this.getCustomizationForType(ruleset.group_id)
-          ?.recently_active_minutes ??
-          this._config.recently_active_minutes ??
+          ?.recently_active_seconds ??
+          this._config.recently_active_seconds ??
           0,
       );
-      if (Number.isFinite(minutes) && minutes > 0) {
-        groupDurations.add(minutes);
+      if (Number.isFinite(seconds) && seconds > 0) {
+        groupDurations.add(seconds);
       }
     }
 
-    for (const minutes of groupDurations) {
+    for (const seconds of groupDurations) {
       for (const entity of Object.values(this.hass.states)) {
-        if (!this._isEntityRecentlyInactive(entity, minutes, now)) continue;
+        if (!this._isEntityRecentlyInactive(entity, seconds, now)) continue;
 
         const expiration =
-          Date.parse(entity.last_changed) + minutes * 60 * 1000;
+          Date.parse(entity.last_changed) + seconds * 1000;
         if (expiration > now && expiration < nextExpiration) {
           nextExpiration = expiration;
         }

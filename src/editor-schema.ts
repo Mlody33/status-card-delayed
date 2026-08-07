@@ -178,14 +178,14 @@ export function getAppearanceSchema(
           selector: { boolean: {} },
         },
         {
-          name: "recently_active_minutes",
+          name: "recently_active_seconds",
           selector: {
             number: {
               min: 0,
-              max: 1440,
+              max: 86400,
               step: 1,
               mode: "box",
-              unit_of_measurement: "min",
+              unit_of_measurement: "s",
             },
           },
         },
@@ -322,14 +322,14 @@ export const getItemAppearanceSchema = (
               ] as const)
             : []),
           {
-            name: "recently_active_minutes",
+            name: "recently_active_seconds",
             selector: {
               number: {
                 min: 0,
-                max: 1440,
+                max: 86400,
                 step: 1,
                 mode: "box",
-                unit_of_measurement: "min",
+                unit_of_measurement: "s",
               },
             },
           },

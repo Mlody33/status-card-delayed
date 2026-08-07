@@ -260,22 +260,22 @@ export function isEntityActiveOrRecentlyActive(
   domain?: string,
   deviceClass?: string,
   isInverted = false,
-  recentlyActiveMinutes = 0,
+  recentlyActiveSeconds = 0,
   now = Date.now()
 ): boolean {
   if (isEntityActive(entity, domain, deviceClass, isInverted)) {
     return true;
   }
 
-  const minutes = Number(recentlyActiveMinutes);
-  if (!Number.isFinite(minutes) || minutes <= 0) {
+  const seconds = Number(recentlyActiveSeconds);
+  if (!Number.isFinite(seconds) || seconds <= 0) {
     return false;
   }
 
   const lastChanged = Date.parse(entity.last_changed);
   return (
     Number.isFinite(lastChanged) &&
-    now - lastChanged < minutes * 60 * 1000
+    now - lastChanged < seconds * 1000
   );
 }
 
