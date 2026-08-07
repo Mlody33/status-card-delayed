@@ -4204,7 +4204,7 @@ let A = class extends R {
         class=${v ? "badge-mode" : ""}
         style=${S(y)}
         data-badge=${Kt(
-      v ? String(h) : void 0
+      v && h > 0 ? String(h) : void 0
     )}
       >
         <div
@@ -4413,7 +4413,7 @@ let A = class extends R {
         class=${g ? "badge-mode" : ""}
         style=${S(b)}
         data-badge=${Kt(
-      g ? String(d) : void 0
+      g && d > 0 ? String(d) : void 0
     )}
       >
         <div

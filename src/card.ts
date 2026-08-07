@@ -1439,7 +1439,7 @@ export class StatusCard extends LitElement {
         class=${showBadge ? "badge-mode" : ""}
         style=${styleMap(badgeStyles)}
         data-badge=${ifDefined(
-          showBadge ? String(badgeCount) : undefined,
+          showBadge && badgeCount > 0 ? String(badgeCount) : undefined,
         )}
       >
         <div
@@ -1774,7 +1774,7 @@ export class StatusCard extends LitElement {
         class=${showBadge ? "badge-mode" : ""}
         style=${styleMap(badgeStyles)}
         data-badge=${ifDefined(
-          showBadge ? String(badgeCount) : undefined,
+          showBadge && badgeCount > 0 ? String(badgeCount) : undefined,
         )}
       >
         <div
