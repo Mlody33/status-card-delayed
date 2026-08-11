@@ -115,6 +115,8 @@ export class StatusCard extends LitElement {
   private _tilePositions = new Map<string, DOMRect>();
   private _exitingTiles: HTMLElement[] = [];
   private _tileAnimationFrame?: number;
+  private _tileAnimationPending = false;
+  private _tileAnimations = new WeakMap<HTMLElement, Animation>();
 
   private static readonly TILE_ANIMATION_DURATION = 480;
   private static readonly TILE_FADE_DURATION = 220;
@@ -156,8 +158,8 @@ export class StatusCard extends LitElement {
     );
   }
 
-  private _currentAnimatedKeys(): Set<string> {
-    if (!this._config || !this.hass) return new Set();
+  private _currentAnimatedKeys(): string[] {
+    if (!this._config || !this.hass) return [];
 
     const extra = this.getExtraItems();
     const group = this.getGroupItems();
@@ -167,63 +169,107 @@ export class StatusCard extends LitElement {
     const people = this.getPersonItems();
 
     if (this._config.ungroup_entities) {
-      return new Set(
-        this._getInlineEntities(people, items).map(
-          ({ entity }) => `entity:${entity.entity_id}`,
-        ),
+      return this._sortInlineEntitiesByActivation(
+        this._getInlineEntities(people, items),
+      ).map(
+        ({ entity }) => `entity:${entity.entity_id}`,
       );
     }
 
-    return new Set([
+    return [
       ...people.map((entity) => `person:${entity.entity_id}`),
       ...items
         .filter((item) => this._isGroupedItemVisible(item))
         .map((item) => this._animationKeyForItem(item)),
-    ]);
+    ];
   }
 
   private _captureTileAnimations(): void {
-    this._tilePositions.clear();
     if (this._prefersReducedMotion()) return;
 
     const nextKeys = this._currentAnimatedKeys();
+    const currentTiles = Array.from(
+      this.renderRoot.querySelectorAll<HTMLElement>("[data-animation-key]"),
+    );
+    const currentKeys = currentTiles
+      .map((tile) => tile.dataset.animationKey)
+      .filter((key): key is string => !!key);
+    const layoutChanged =
+      currentKeys.length !== nextKeys.length ||
+      currentKeys.some((key, index) => key !== nextKeys[index]);
+
+    // State updates are frequent in Home Assistant. Avoid forcing layout and
+    // starting a new Web Animation when the visible tile layout is unchanged.
+    if (!layoutChanged) return;
+
+    if (this._tileAnimationFrame !== undefined) {
+      cancelAnimationFrame(this._tileAnimationFrame);
+      this._tileAnimationFrame = undefined;
+    }
+    this._exitingTiles.splice(0).forEach((tile) => tile.remove());
+    this._tilePositions.clear();
+    this._tileAnimationPending = true;
+
+    const nextKeySet = new Set(nextKeys);
     const hostRect = this.getBoundingClientRect();
     const animationLayer = this.renderRoot.querySelector<HTMLElement>(
       ".tile-animation-layer",
     );
 
-    this.renderRoot
-      .querySelectorAll<HTMLElement>("[data-animation-key]")
-      .forEach((tile) => {
-        const key = tile.dataset.animationKey;
-        if (!key) return;
+    currentTiles.forEach((tile) => {
+      const key = tile.dataset.animationKey;
+      if (!key) return;
 
-        const rect = tile.getBoundingClientRect();
-        this._tilePositions.set(key, rect);
-        if (nextKeys.has(key) || !animationLayer) return;
+      const rect = tile.getBoundingClientRect();
+      this._tilePositions.set(key, rect);
+      if (nextKeySet.has(key) || !animationLayer) return;
 
-        const ghost = document.createElement("div");
-        ghost.className = "exiting-tile";
-        Object.assign(ghost.style, {
-          left: `${rect.left - hostRect.left}px`,
-          top: `${rect.top - hostRect.top}px`,
-          width: `${rect.width}px`,
-          height: `${rect.height}px`,
-        });
-
-        if (tile.classList.contains("inline-entity-card")) {
-          const card = tile.firstElementChild;
-          if (card) ghost.append(card);
-        } else {
-          ghost.append(tile.cloneNode(true));
-        }
-
-        animationLayer.append(ghost);
-        this._exitingTiles.push(ghost);
+      const ghost = document.createElement("div");
+      ghost.className = "exiting-tile";
+      Object.assign(ghost.style, {
+        left: `${rect.left - hostRect.left}px`,
+        top: `${rect.top - hostRect.top}px`,
+        width: `${rect.width}px`,
+        height: `${rect.height}px`,
       });
+
+      if (tile.classList.contains("inline-entity-card")) {
+        const card = tile.firstElementChild;
+        if (card) ghost.append(card);
+      } else {
+        ghost.append(tile.cloneNode(true));
+      }
+
+      animationLayer.append(ghost);
+      this._exitingTiles.push(ghost);
+    });
+  }
+
+  private _animateTile(
+    tile: HTMLElement,
+    keyframes: Keyframe[],
+    options: KeyframeAnimationOptions,
+  ): Animation {
+    this._tileAnimations.get(tile)?.cancel();
+    const animation = tile.animate(keyframes, options);
+    this._tileAnimations.set(tile, animation);
+    animation.finished.then(
+      () => {
+        if (this._tileAnimations.get(tile) === animation) {
+          this._tileAnimations.delete(tile);
+        }
+      },
+      () => {
+        if (this._tileAnimations.get(tile) === animation) {
+          this._tileAnimations.delete(tile);
+        }
+      },
+    );
+    return animation;
   }
 
   private _playTileAnimations(): void {
+    this._tileAnimationPending = false;
     if (this._prefersReducedMotion()) {
       this._exitingTiles.splice(0).forEach((tile) => tile.remove());
       return;
@@ -240,7 +286,8 @@ export class StatusCard extends LitElement {
         const current = tile.getBoundingClientRect();
 
         if (!previous) {
-          tile.animate(
+          this._animateTile(
+            tile,
             [
               { opacity: 0 },
               { opacity: 1 },
@@ -257,7 +304,8 @@ export class StatusCard extends LitElement {
         const deltaY = previous.top - current.top;
         if (Math.abs(deltaX) < 0.5 && Math.abs(deltaY) < 0.5) return;
 
-        tile.animate(
+        this._animateTile(
+          tile,
           [
             {
               transform: `translate(${deltaX}px, ${deltaY}px) scale(0.96)`,
@@ -339,10 +387,79 @@ export class StatusCard extends LitElement {
     if (!oldHass || !this.hass) return true;
 
     if (oldHass.themes !== this.hass.themes) return true;
-    if (oldHass.states !== this.hass.states) return true;
+    if (
+      oldHass.entities !== this.hass.entities ||
+      oldHass.devices !== this.hass.devices ||
+      oldHass.areas !== this.hass.areas
+    ) {
+      return true;
+    }
+    if (oldHass.states !== this.hass.states) {
+      // Custom inline cards may depend on entities outside this card's own
+      // filters, so keep forwarding hass even when the parent can skip render.
+      this._updateInlineCardsHass();
+      if (this._hasRelevantStateChanged(oldHass, this.hass)) return true;
+    }
     if (oldHass.localize !== this.hass.localize) return true;
     if (oldHass.language !== this.hass.language) return true;
 
+    return false;
+  }
+
+  private _updateInlineCardsHass(): void {
+    for (const { el } of this._inlineCardElementCache.values()) {
+      try {
+        (el as LovelaceCard).hass = this.hass;
+      } catch (error) {
+        console.debug(
+          "status-card-delayed: Failed to update inline card hass",
+          error,
+        );
+      }
+    }
+  }
+
+  private _hasRelevantStateChanged(
+    oldHass: HomeAssistant,
+    newHass: HomeAssistant,
+  ): boolean {
+    const includedIds = this._computeIncludedIdsMemo(
+      newHass.entities || {},
+      newHass.devices || {},
+      newHass.areas || {},
+      this._config?.area || null,
+      this._config?.floor || null,
+      this._config?.label || null,
+      this.hiddenAreas,
+      this.hiddenLabels,
+      this.hiddenEntities,
+    );
+    const relevantIds = new Set(includedIds);
+
+    for (const id of this._computePersonIdsMemo(
+      newHass.entities,
+      this.hiddenEntities,
+      this.hiddenLabels,
+      this.hide_person,
+    )) {
+      relevantIds.add(id);
+    }
+    for (const id of
+      (this._config.extra_entities as string[] | undefined) || []) {
+      relevantIds.add(id);
+    }
+    const groupCandidates = this._computeGroupCandidatesMemo(
+      this._config.rulesets || [],
+      this.__registryEntities,
+      this.__registryDevices,
+      this.__registryAreas,
+      this.hiddenEntities,
+    );
+    groupCandidates.forEach((ids) => ids.forEach((id) => relevantIds.add(id)));
+
+    for (const id of relevantIds) {
+      if (oldHass.states[id] !== newHass.states[id]) return true;
+    }
     return false;
   }
 
@@ -822,6 +939,9 @@ export class StatusCard extends LitElement {
     if (this._tileAnimationFrame !== undefined) {
       cancelAnimationFrame(this._tileAnimationFrame);
     }
+    this._exitingTiles.splice(0).forEach((tile) => tile.remove());
+    this._tilePositions.clear();
+    this._tileAnimationPending = false;
     this._inlineCardElementCache.clear();
   }
 
@@ -849,18 +969,26 @@ export class StatusCard extends LitElement {
 
     if (!this._config || !this.hass) return;
 
-    if (this._tileAnimationFrame !== undefined) {
-      cancelAnimationFrame(this._tileAnimationFrame);
+    if (this._tileAnimationPending && this._tileAnimationFrame === undefined) {
+      // Slotted HA tabs recalculate their layout after Lit's update. Waiting for
+      // the next paint gives FLIP the final positions instead of the old ones.
+      this._tileAnimationFrame = requestAnimationFrame(() => {
+        this._tileAnimationFrame = undefined;
+        this._playTileAnimations();
+      });
     }
-    // Slotted HA tabs recalculate their layout after Lit's update. Waiting for
-    // the next paint gives FLIP the final positions instead of the old ones.
-    this._tileAnimationFrame = requestAnimationFrame(() => {
-      this._tileAnimationFrame = undefined;
-      this._playTileAnimations();
-    });
 
     this._ensureRegistryData();
-    this._scheduleRecentActivityUpdate();
+    if (
+      changedProps.has("hass") ||
+      changedProps.has("_config") ||
+      changedProps.has("__registryEntities") ||
+      changedProps.has("__registryDevices") ||
+      changedProps.has("__registryAreas") ||
+      changedProps.has("_recentActivityTick")
+    ) {
+      this._scheduleRecentActivityUpdate();
+    }
 
     const oldHass = changedProps.get("hass") as HomeAssistant | undefined;
     const oldConfig = changedProps.get("_config") as
@@ -1623,6 +1751,19 @@ export class StatusCard extends LitElement {
     return placeholder;
   }
 
+  private _pruneInlineCardCache(
+    entities: Array<{ entity: HassEntity; contextKey: string }>,
+  ): void {
+    const visibleKeys = new Set(
+      entities.map(
+        ({ entity, contextKey }) => `${contextKey}:${entity.entity_id}`,
+      ),
+    );
+    for (const key of this._inlineCardElementCache.keys()) {
+      if (!visibleKeys.has(key)) this._inlineCardElementCache.delete(key);
+    }
+  }
+
   private _getInlineEntities(
     personEntities: HassEntity[],
     items: AnyItem[],
@@ -2002,6 +2143,11 @@ export class StatusCard extends LitElement {
     const inlineEntities = this._sortInlineEntitiesByActivation(
       this._getInlineEntities(personEntities, sorted),
     );
+    if (this._config.ungroup_entities) {
+      this._pruneInlineCardCache(inlineEntities);
+    } else if (this._inlineCardElementCache.size) {
+      this._inlineCardElementCache.clear();
+    }
     let content: TemplateResult = html``;
     if (!this._shouldHideCard) {
       content = !this._config.ungroup_entities

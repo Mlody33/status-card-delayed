@@ -702,9 +702,14 @@ export class StatusCardPopup extends LitElement {
 
     const flatSorted = this.sortEntitiesForPopup(ents);
     const currentIdsSet = new Set(ents.map((e) => e.entity_id));
-    Array.from(this._cardEls.keys()).forEach((key) => {
-      if (!currentIdsSet.has(key)) this._cardEls.delete(key);
-    });
+    const pruneCache = (cache: Map<string, unknown>) => {
+      for (const key of cache.keys()) {
+        if (!currentIdsSet.has(key)) cache.delete(key);
+      }
+    };
+    pruneCache(this._cardEls);
+    pruneCache(this._popupCardConfigCache);
+    pruneCache(this._cardElementCache);
     this._lastEntityIds = ents.map((e) => e.entity_id);
 
     const sortedGroups = this.groupAndSortEntities(
