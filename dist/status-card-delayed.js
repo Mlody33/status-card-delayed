@@ -601,7 +601,7 @@ function w(e) {
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-function H(e) {
+function V(e) {
   return w({ ...e, state: !0, attribute: !1 });
 }
 /**
@@ -806,7 +806,7 @@ function $s(e, t) {
       return !1;
   return !0;
 }
-function V(e, t) {
+function $(e, t) {
   t === void 0 && (t = $s);
   var i = null;
   function s() {
@@ -1029,10 +1029,10 @@ const Hi = /* @__PURE__ */ new Set([
   }
   return Vo(e);
 };
-V(
+$(
   (e) => new Intl.Collator(e)
 );
-const Mo = V(
+const Mo = $(
   (e) => new Intl.Collator(e, { sensitivity: "accent" })
 ), wo = (e, t) => e < t ? -1 : e > t ? 1 : 0, Fi = (e, t, i = void 0) => Intl != null && Intl.Collator ? Mo(i).compare(e, t) : wo(e.toLowerCase(), t.toLowerCase()), zt = (e, t) => {
   if (e === t)
@@ -1186,13 +1186,13 @@ function Gi(e, t, i, s, o) {
     ])
   );
   return Object.values(e).filter((u) => {
-    var C, $, T;
+    var C, L, T;
     const y = u.entity_id.split(".")[0];
     if (!g.has(y)) return !1;
     if (y === "update")
       return !u.hidden;
     const b = u.device_id ? v.get(u.device_id) : void 0;
-    if (!(u.area_id != null || b && b.area_id != null) || r && !((((C = u.labels) == null ? void 0 : C.some((U) => r.includes(U))) ?? !1) || ((($ = b == null ? void 0 : b.labels) == null ? void 0 : $.some((U) => r.includes(U))) ?? !1)) || n && !(u.area_id !== void 0 && u.area_id !== null && n.includes(u.area_id) || b && b.area_id !== void 0 && b.area_id !== null && n.includes(b.area_id)))
+    if (!(u.area_id != null || b && b.area_id != null) || r && !((((C = u.labels) == null ? void 0 : C.some((U) => r.includes(U))) ?? !1) || (((L = b == null ? void 0 : b.labels) == null ? void 0 : L.some((U) => r.includes(U))) ?? !1)) || n && !(u.area_id !== void 0 && u.area_id !== null && n.includes(u.area_id) || b && b.area_id !== void 0 && b.area_id !== null && n.includes(b.area_id)))
       return !1;
     if (a) {
       const I = u.area_id ? m.get(u.area_id) : void 0, U = b != null && b.area_id ? m.get(b.area_id) : void 0;
@@ -2417,9 +2417,9 @@ const tn = [
     }, this._onPopState = (t) => {
       var i;
       this.open && !((i = window.history.state) != null && i.statusCardDelayedPopup) && (this.open = !1);
-    }, this._entities = [], this.computeLabel = V(
+    }, this._entities = [], this.computeLabel = $(
       (t, i, s) => !this.hass || !t ? (t == null ? void 0 : t.name) || "" : $t(this.hass, t, i, s)
-    ), this._popupCardConfigCache = /* @__PURE__ */ new Map(), this._cardElementCache = /* @__PURE__ */ new Map(), this._sortEntitiesMemo = V(
+    ), this._popupCardConfigCache = /* @__PURE__ */ new Map(), this._cardElementCache = /* @__PURE__ */ new Map(), this._sortEntitiesMemo = $(
       (t, i, s, o) => {
         const n = (o == null ? void 0 : o.states) ?? {}, a = t.slice();
         if (i === "state") {
@@ -2434,7 +2434,7 @@ const tn = [
         const r = Pt(n, s);
         return a.sort((c, l) => r(c.entity_id, l.entity_id));
       }
-    ), this._areaMapMemo = V(
+    ), this._areaMapMemo = $(
       (t) => {
         const i = /* @__PURE__ */ new Map(), s = Array.isArray(t) ? t : Object.values(t ?? {});
         for (const o of s)
@@ -2450,7 +2450,7 @@ const tn = [
         ((a = (n = this.hass) == null ? void 0 : n.locale) == null ? void 0 : a.language) ?? "en",
         this.hass
       );
-    }, this.groupAndSortEntities = V(
+    }, this.groupAndSortEntities = $(
       (t, i, s) => {
         const o = /* @__PURE__ */ new Map();
         for (const a of t) {
@@ -2514,8 +2514,8 @@ const tn = [
     } : {};
     let h = {};
     if (c && typeof c == "object") {
-      const { type: E, entity: C, ...$ } = c;
-      h = $;
+      const { type: E, entity: C, ...L } = c;
+      h = L;
     } else
       h = {};
     const p = {
@@ -2728,21 +2728,21 @@ const tn = [
     }
   }
   render() {
-    var $, T, I, U, Bt, ve;
+    var L, T, I, U, Bt, ve;
     if (!this.hass) return f``;
-    const t = this._getGroupCustomization(), i = (t == null ? void 0 : t.list_mode) ?? this.card.list_mode, s = (t == null ? void 0 : t.columns) ?? this.card._config.columns ?? 4, o = i ? 1 : s, n = this.selectedDomain, a = this.selectedDeviceClass, r = this.selectedGroup, c = this.card, l = this._areaMapMemo(($ = this.hass) == null ? void 0 : $.areas);
+    const t = this._getGroupCustomization(), i = (t == null ? void 0 : t.list_mode) ?? this.card.list_mode, s = (t == null ? void 0 : t.columns) ?? this.card._config.columns ?? 4, o = i ? 1 : s, n = this.selectedDomain, a = this.selectedDeviceClass, r = this.selectedGroup, c = this.card, l = this._areaMapMemo((L = this.hass) == null ? void 0 : L.areas);
     let d = this._entities, h = !1;
     r === void 0 && n && (h = !0);
-    const p = this.sortEntitiesForPopup(d), _ = new Set(d.map((L) => L.entity_id)), g = (L) => {
-      for (const W of L.keys())
-        _.has(W) || L.delete(W);
+    const p = this.sortEntitiesForPopup(d), _ = new Set(d.map((H) => H.entity_id)), g = (H) => {
+      for (const W of H.keys())
+        _.has(W) || H.delete(W);
     };
-    g(this._cardEls), g(this._popupCardConfigCache), g(this._cardElementCache), this._lastEntityIds = d.map((L) => L.entity_id);
+    g(this._cardEls), g(this._popupCardConfigCache), g(this._cardElementCache), this._lastEntityIds = d.map((H) => H.entity_id);
     const v = this.groupAndSortEntities(
       d,
       l,
       this.sortEntitiesForPopup
-    ), m = (t == null ? void 0 : t.ungroup_areas) === !0 || ((T = c == null ? void 0 : c._config) == null ? void 0 : T.ungroupAreas) === !0 || ((I = c == null ? void 0 : c._config) == null ? void 0 : I.ungroup_areas) === !0 || ((U = c == null ? void 0 : c._config) == null ? void 0 : U.area_grouping) !== void 0 && ((Bt = c == null ? void 0 : c._config) == null ? void 0 : Bt.area_grouping) === !1, u = v.length ? Math.max(...v.map(([, L]) => L.length)) : 0, y = m ? Math.min(o, Math.max(1, d.length)) : Math.min(o, Math.max(1, u));
+    ), m = (t == null ? void 0 : t.ungroup_areas) === !0 || ((T = c == null ? void 0 : c._config) == null ? void 0 : T.ungroupAreas) === !0 || ((I = c == null ? void 0 : c._config) == null ? void 0 : I.ungroup_areas) === !0 || ((U = c == null ? void 0 : c._config) == null ? void 0 : U.area_grouping) !== void 0 && ((Bt = c == null ? void 0 : c._config) == null ? void 0 : Bt.area_grouping) === !1, u = v.length ? Math.max(...v.map(([, H]) => H.length)) : 0, y = m ? Math.min(o, Math.max(1, d.length)) : Math.min(o, Math.max(1, u));
     this.style.setProperty("--columns", String(y));
     const b = z(n, a), E = typeof (c == null ? void 0 : c.getCustomizationForType) == "function" ? c.getCustomizationForType(b) : void 0, C = (E == null ? void 0 : E.invert) === !0;
     return f`
@@ -2761,9 +2761,9 @@ const tn = [
         <span slot="headerTitle">
           ${(() => {
       var X, P;
-      const L = this.selectedGroup, W = this.card;
-      if (L !== void 0 && ((P = (X = W._config) == null ? void 0 : X.content) != null && P[L])) {
-        const qi = W._config.content[L];
+      const H = this.selectedGroup, W = this.card;
+      if (H !== void 0 && ((P = (X = W._config) == null ? void 0 : X.content) != null && P[H])) {
+        const qi = W._config.content[H];
         return this.hass.localize(
           "ui.panel.lovelace.editor.card.entities.name"
         ) + " in " + qi;
@@ -2784,7 +2784,7 @@ const tn = [
                 slot="headerActionItems"
                 placement="bottom-end"
                 @wa-select=${this._handleMenuAction}
-                @closed=${(L) => L.stopPropagation()}
+                @closed=${(H) => H.stopPropagation()}
               >
                 <ha-icon-button
                   slot="trigger"
@@ -2824,17 +2824,17 @@ const tn = [
                   <ul class="entity-list">
                     ${K(
       p,
-      (L) => L.entity_id,
-      (L) => f`<li class="entity-item">- ${L.entity_id}</li>`
+      (H) => H.entity_id,
+      (H) => f`<li class="entity-item">- ${H.entity_id}</li>`
     )}
                   </ul>
                 ` : f`
                   <ul class="entity-list">
                     ${K(
       v,
-      ([L]) => L,
-      ([L, W]) => {
-        const X = l.get(L) ?? (L === "unassigned" ? "Unassigned" : L);
+      ([H]) => H,
+      ([H, W]) => {
+        const X = l.get(H) ?? (H === "unassigned" ? "Unassigned" : H);
         return f`
                           <li class="entity-item">
                             <div class="area-header">
@@ -2843,7 +2843,7 @@ const tn = [
                                     class="area-toggle-btn"
                                     .path=${te}
                                     @click=${(P) => {
-          P.stopPropagation(), this.toggleArea(L);
+          P.stopPropagation(), this.toggleArea(H);
         }}
                                     label="${this._getDomainAreaToggleLabel(X)}"
                                   ></ha-icon-button>` : ""}
@@ -2867,16 +2867,16 @@ const tn = [
                 <div class="entity-cards">
                   ${K(
       p,
-      (L) => L.entity_id,
-      (L) => f`
+      (H) => H.entity_id,
+      (H) => f`
                       <div class="entity-card">
-                        ${this._getOrCreateCard(L)}
+                        ${this._getOrCreateCard(H)}
                       </div>
                     `
     )}
                 </div>
-              ` : f`${v.map(([L, W]) => {
-      const X = l.get(L) ?? (L === "unassigned" ? "Unassigned" : L);
+              ` : f`${v.map(([H, W]) => {
+      const X = l.get(H) ?? (H === "unassigned" ? "Unassigned" : H);
       return f`
                   <div class="cards-wrapper">
                     <div class="area-header">
@@ -2885,7 +2885,7 @@ const tn = [
                             class="area-toggle-btn"
                             .path=${te}
                             @click=${(P) => {
-        P.stopPropagation(), this.toggleArea(L);
+        P.stopPropagation(), this.toggleArea(H);
       }}
                             label="${this._getDomainAreaToggleLabel(X)}"
                           ></ha-icon-button>` : ""}
@@ -3096,13 +3096,13 @@ O([
   w({ attribute: !1 })
 ], F.prototype, "card");
 O([
-  H()
+  V()
 ], F.prototype, "_showAll");
 O([
-  H()
+  V()
 ], F.prototype, "selectedGroup");
 O([
-  H()
+  V()
 ], F.prototype, "_entities");
 customElements.define("status-card-delayed-popup", F);
 class _t extends R {
@@ -3487,7 +3487,7 @@ var dn = Object.defineProperty, hn = Object.getOwnPropertyDescriptor, M = (e, t,
 };
 let A = class extends R {
   constructor() {
-    super(...arguments), this.entitiesByDomain = {}, this.selectedDomain = null, this.selectedDeviceClass = null, this.hiddenEntities = [], this.hiddenLabels = [], this.hiddenAreas = [], this.hide_person = !1, this.hide_content_name = !0, this.list_mode = !1, this.badge_mode = !1, this.no_background = !1, this.badge_color = "", this.badge_text_color = "", this.selectedGroup = null, this._recentActivityTick = 0, this._shouldHideCard = !1, this.__registryEntities = [], this.__registryDevices = [], this.__registryAreas = [], this.__registryFetchInProgress = !1, this._parsedGlobalCss = {}, this._parsedGlobalIconCss = {}, this._parsedGlobalCardCss = {}, this._parsedGlobalNameCss = {}, this._parsedGlobalStateCss = {}, this._inlineCardElementCache = /* @__PURE__ */ new Map(), this._visibleEntityOrder = [], this._tilePositions = /* @__PURE__ */ new Map(), this._exitingTiles = [], this._tileAnimationPending = !1, this._tileAnimations = /* @__PURE__ */ new WeakMap(), this._computeIncludedIdsMemo = V(
+    super(...arguments), this.entitiesByDomain = {}, this.selectedDomain = null, this.selectedDeviceClass = null, this.hiddenEntities = [], this.hiddenLabels = [], this.hiddenAreas = [], this.hide_person = !1, this.hide_content_name = !0, this.list_mode = !1, this.badge_mode = !1, this.no_background = !1, this.badge_color = "", this.badge_text_color = "", this.selectedGroup = null, this._recentActivityTick = 0, this._shouldHideCard = !1, this.__registryEntities = [], this.__registryDevices = [], this.__registryAreas = [], this.__registryFetchInProgress = !1, this._parsedGlobalCss = {}, this._parsedGlobalIconCss = {}, this._parsedGlobalCardCss = {}, this._parsedGlobalNameCss = {}, this._parsedGlobalStateCss = {}, this._inlineCardElementCache = /* @__PURE__ */ new Map(), this._visibleEntityOrder = [], this._tilePositions = /* @__PURE__ */ new Map(), this._exitingTiles = [], this._tileAnimationPending = !1, this._tileAnimations = /* @__PURE__ */ new WeakMap(), this._computeIncludedIdsMemo = $(
       (e, t, i, s, o, n, a, r, c) => Gi(
         e || {},
         t || {},
@@ -3502,7 +3502,7 @@ let A = class extends R {
         },
         tt
       )
-    ), this._mapIdsToStatesMemo = V(
+    ), this._mapIdsToStatesMemo = $(
       (e, t) => Ri(e, t),
       (e, t) => {
         const [i, s] = e, [o, n] = t;
@@ -3511,7 +3511,7 @@ let A = class extends R {
           if (s[a] !== n[a]) return !1;
         return !0;
       }
-    ), this._customizationIndexMemo = V(ji), this._computePersonIdsMemo = V(en), this._mapPersonIdsToStatesMemo = V(
+    ), this._customizationIndexMemo = $(ji), this._computePersonIdsMemo = $(en), this._mapPersonIdsToStatesMemo = $(
       (e, t) => sn(e, t),
       (e, t) => {
         const [i, s] = e, [o, n] = t;
@@ -3520,7 +3520,7 @@ let A = class extends R {
           if (s[a] !== n[a]) return !1;
         return !0;
       }
-    ), this._computeExtraItemsMemo = V(
+    ), this._computeExtraItemsMemo = $(
       on,
       (e, t) => {
         const [i, s, o] = e, [n, a, r] = t;
@@ -3531,13 +3531,13 @@ let A = class extends R {
           if (s[l] !== a[l]) return !1;
         return !0;
       }
-    ), this._computeGroupItemsMemo = V(nn), this._computeDomainItemsMemo = V(an), this._computeDeviceClassItemsMemo = V(rn), this._computeEntityMap = V(
+    ), this._computeGroupItemsMemo = $(nn), this._computeDomainItemsMemo = $(an), this._computeDeviceClassItemsMemo = $(rn), this._computeEntityMap = $(
       (e) => new Map(e.map((t) => [t.entity_id, t]))
-    ), this._computeDeviceMap = V(
+    ), this._computeDeviceMap = $(
       (e) => new Map(e.map((t) => [t.id, t]))
-    ), this._computeAreaMap = V(
+    ), this._computeAreaMap = $(
       (e) => new Map(e.map((t) => [t.area_id, t]))
-    ), this._computeGroupCandidatesMemo = V(
+    ), this._computeGroupCandidatesMemo = $(
       (e, t, i, s, o) => {
         const n = /* @__PURE__ */ new Map(), a = this._computeEntityMap(t), r = this._computeDeviceMap(i), c = this._computeAreaMap(s);
         return e.forEach((l) => {
@@ -3554,7 +3554,7 @@ let A = class extends R {
           n.set(l.group_id, d);
         }), n;
       }
-    ), this._computeGroupResultsMemo = V(
+    ), this._computeGroupResultsMemo = $(
       (e, t, i, s, o, n, a, r) => {
         const c = /* @__PURE__ */ new Map(), l = {
           __registryEntities: s,
@@ -3582,18 +3582,18 @@ let A = class extends R {
           c.set(_.group_id, m);
         }), c;
       }
-    ), this._baseEntitiesMemo = V(
+    ), this._baseEntitiesMemo = $(
       (e, t, i) => e.filter((s) => {
         const o = s.state;
         if (o === "unavailable" || o === "unknown") return !1;
         const n = s.attributes.device_class;
         return t === "switch" ? i === "outlet" ? n === "outlet" : i === "switch" ? n === "switch" || n === void 0 : !0 : !i || n === i;
       })
-    ), this.computeLabel = V(
+    ), this.computeLabel = $(
       (e, t, i) => !this.hass || !e ? (e == null ? void 0 : e.name) || "" : $t(this.hass, e, t, i)
     ), this._handlePersonAction = (e) => (t) => {
       t.stopPropagation(), this.showMoreInfo(e);
-    }, this._handleDomainAction = V(
+    }, this._handleDomainAction = $(
       (e, t) => (i) => {
         Si(
           this,
@@ -3614,9 +3614,9 @@ let A = class extends R {
           }
         );
       }
-    ), this._computeActionHandler = V(
+    ), this._computeActionHandler = $(
       (e, t) => To({ hasHold: e, hasDoubleClick: t })
-    ), this._computeSortedEntities = V(
+    ), this._computeSortedEntities = $(
       (e, t, i, s) => [...e, ...t, ...i, ...s].sort(
         (o, n) => o.order - n.order
       )
@@ -4298,14 +4298,14 @@ let A = class extends R {
       n,
       void 0,
       this._customizationIndexMemo(this._config.customization)
-    ), l = this.getCustomizationForType(n), h = this._config.badge_only_active_entities ?? !0 ? this._getCurrentlyActiveGroupEntities(e).length : o.length, p = this._handleGroupAction(n, t, o), {
-      ah: _,
-      contentClasses: g,
-      iconStyles: v,
-      badgeStyles: m,
-      buttonStyles: u,
-      customIconStyles: y,
-      showBadge: b
+    ), l = this.getCustomizationForType(n), d = this._getCurrentlyActiveGroupEntities(e), p = this._config.badge_only_active_entities ?? !0 ? d.length : o.length, _ = this._handleGroupAction(n, t, o), {
+      ah: g,
+      contentClasses: v,
+      iconStyles: m,
+      badgeStyles: u,
+      buttonStyles: y,
+      customIconStyles: b,
+      showBadge: E
     } = this._computeTabStyles(l, "domain", {
       color: r,
       background_color: c
@@ -4315,26 +4315,26 @@ let A = class extends R {
         slot="nav"
         panel=${"group-" + t}
         data-animation-key=${`group:${e.group_id}`}
-        @action=${p}
-        .actionHandler=${_}
-        class=${b ? "badge-mode" : ""}
-        style=${S(m)}
+        @action=${_}
+        .actionHandler=${g}
+        class=${E ? "badge-mode" : ""}
+        style=${S(u)}
       >
-        ${b && h > 0 ? ze(
-      h,
-      f`<span class="count-badge">${h}</span>`
+        ${E && p > 0 ? ze(
+      p,
+      f`<span class="count-badge">${p}</span>`
     ) : ""}
         <div
-          class="entity ${dt(g)}"
-          style=${S(u)}
+          class="entity ${dt(v)}"
+          style=${S(y)}
         >
           <div
             class="entity-icon"
-            style=${S({ ...v, ...y })}
+            style=${S({ ...m, ...b })}
           >
             ${a.startsWith("M") ? f`<ha-svg-icon .path=${a}></ha-svg-icon>` : f`<ha-icon icon=${a}></ha-icon>`}
           </div>
-          ${b ? "" : f`<div class="entity-info">
+          ${E ? "" : f`<div class="entity-info">
                 ${this.hide_content_name ? "" : f`<div
                       class="entity-name"
                       style=${S(this._parsedGlobalNameCss)}
@@ -4345,7 +4345,7 @@ let A = class extends R {
                   class="entity-state"
                   style=${S(this._parsedGlobalStateCss)}
                 >
-                  ${o.length}
+                  ${d.length}
                   ${e.group_status ? ` ${e.group_status}` : ""}
                 </div>
               </div>`}
@@ -4492,39 +4492,42 @@ let A = class extends R {
     );
   }
   renderItemTab(e) {
-    const t = e.domain, i = e.deviceClass, s = this._isOn(t, i), o = this._totalEntities(t, i), a = this._shouldShowTotalEntities(t, i) ? o : s;
-    if (!a.length) return f``;
-    const r = Ei(
+    const t = e.domain, i = e.deviceClass, s = this._isOn(t, i), o = this._currentlyActiveEntities(
+      t,
+      i
+    ), n = this._totalEntities(t, i), r = this._shouldShowTotalEntities(t, i) ? n : s;
+    if (!r.length) return f``;
+    const c = Ei(
       this._config,
       t,
       i,
       this._customizationIndexMemo(this._config.customization)
-    ), c = this.getCustomizationForType(
+    ), l = this.getCustomizationForType(
       z(t, i)
-    ), d = this._config.badge_only_active_entities ?? !0 ? this._currentlyActiveEntities(t, i).length : a.length, h = this._handleDomainAction(t, i), {
-      ah: p,
-      contentClasses: _,
-      iconStyles: g,
-      badgeStyles: v,
-      buttonStyles: m,
-      customIconStyles: u,
-      showBadge: y
-    } = this._computeTabStyles(c, "domain", {
-      color: r,
+    ), h = this._config.badge_only_active_entities ?? !0 ? o.length : r.length, p = this._handleDomainAction(t, i), {
+      ah: _,
+      contentClasses: g,
+      iconStyles: v,
+      badgeStyles: m,
+      buttonStyles: u,
+      customIconStyles: y,
+      showBadge: b
+    } = this._computeTabStyles(l, "domain", {
+      color: c,
       background_color: ne(
         this._config,
         t,
         i,
         this._customizationIndexMemo(this._config.customization)
       )
-    }), b = ae(this._config, t, i) || this.computeLabel({ name: i || t });
-    let E;
-    return this._shouldShowTotalNumbers(t, i) ? E = `${s.length}/${o.length} ${ie(
+    }), E = ae(this._config, t, i) || this.computeLabel({ name: i || t });
+    let C;
+    return this._shouldShowTotalNumbers(t, i) ? C = `${o.length}/${n.length} ${ie(
       this.hass,
       this._config,
       t,
       i
-    )}` : this._shouldShowTotalEntities(t, i) ? E = `${o.length}` : E = `${s.length} ${ie(
+    )}` : this._shouldShowTotalEntities(t, i) ? C = `${n.length}` : C = `${o.length} ${ie(
       this.hass,
       this._config,
       t,
@@ -4534,40 +4537,40 @@ let A = class extends R {
         slot="nav"
         panel=${i || t}
         data-animation-key=${this._animationKeyForItem(e)}
-        @action=${h}
-        .actionHandler=${p}
-        class=${y ? "badge-mode" : ""}
-        style=${S(v)}
+        @action=${p}
+        .actionHandler=${_}
+        class=${b ? "badge-mode" : ""}
+        style=${S(m)}
       >
-        ${y && d > 0 ? ze(
-      d,
-      f`<span class="count-badge">${d}</span>`
+        ${b && h > 0 ? ze(
+      h,
+      f`<span class="count-badge">${h}</span>`
     ) : ""}
         <div
-          class="entity ${dt(_)}"
-          style=${S(m)}
+          class="entity ${dt(g)}"
+          style=${S(u)}
         >
           <div
             class="entity-icon"
-            style=${S({ ...g, ...u })}
+            style=${S({ ...v, ...y })}
           >
             ${(() => {
-      const C = Ui(this._config, t, i);
-      return C.startsWith("M") ? f`<ha-svg-icon .path=${C}></ha-svg-icon>` : f`<ha-icon icon=${C}></ha-icon>`;
+      const L = Ui(this._config, t, i);
+      return L.startsWith("M") ? f`<ha-svg-icon .path=${L}></ha-svg-icon>` : f`<ha-icon icon=${L}></ha-icon>`;
     })()}
           </div>
-          ${y ? "" : f`<div class="entity-info">
+          ${b ? "" : f`<div class="entity-info">
                 ${this.hide_content_name ? "" : f`<div
                       class="entity-name"
                       style=${S(this._parsedGlobalNameCss)}
                     >
-                      ${b}
+                      ${E}
                     </div>`}
                 <div
                   class="entity-state"
                   style=${S(this._parsedGlobalStateCss)}
                 >
-                  ${E}
+                  ${C}
                 </div>
               </div>`}
         </div>
@@ -4736,82 +4739,82 @@ M([
   w({ type: Object })
 ], A.prototype, "_config", 2);
 M([
-  H()
+  V()
 ], A.prototype, "entitiesByDomain", 2);
 M([
-  H()
+  V()
 ], A.prototype, "selectedDomain", 2);
 M([
-  H()
+  V()
 ], A.prototype, "selectedDeviceClass", 2);
 M([
-  H()
+  V()
 ], A.prototype, "hiddenEntities", 2);
 M([
-  H()
+  V()
 ], A.prototype, "hiddenLabels", 2);
 M([
-  H()
+  V()
 ], A.prototype, "hiddenAreas", 2);
 M([
-  H()
+  V()
 ], A.prototype, "hide_person", 2);
 M([
-  H()
+  V()
 ], A.prototype, "hide_content_name", 2);
 M([
-  H()
+  V()
 ], A.prototype, "list_mode", 2);
 M([
-  H()
+  V()
 ], A.prototype, "badge_mode", 2);
 M([
-  H()
+  V()
 ], A.prototype, "no_background", 2);
 M([
-  H()
+  V()
 ], A.prototype, "badge_color", 2);
 M([
-  H()
+  V()
 ], A.prototype, "badge_text_color", 2);
 M([
-  H()
+  V()
 ], A.prototype, "selectedGroup", 2);
 M([
-  H()
+  V()
 ], A.prototype, "_recentActivityTick", 2);
 M([
   w({ attribute: !1 })
 ], A.prototype, "hass", 2);
 M([
-  H()
+  V()
 ], A.prototype, "_shouldHideCard", 2);
 M([
-  H()
+  V()
 ], A.prototype, "__registryEntities", 2);
 M([
-  H()
+  V()
 ], A.prototype, "__registryDevices", 2);
 M([
-  H()
+  V()
 ], A.prototype, "__registryAreas", 2);
 M([
-  H()
+  V()
 ], A.prototype, "__registryFetchInProgress", 2);
 M([
-  H()
+  V()
 ], A.prototype, "_parsedGlobalCss", 2);
 M([
-  H()
+  V()
 ], A.prototype, "_parsedGlobalIconCss", 2);
 M([
-  H()
+  V()
 ], A.prototype, "_parsedGlobalCardCss", 2);
 M([
-  H()
+  V()
 ], A.prototype, "_parsedGlobalNameCss", 2);
 M([
-  H()
+  V()
 ], A.prototype, "_parsedGlobalStateCss", 2);
 A = M([
   Ft("status-card-delayed")
@@ -5462,10 +5465,10 @@ J([
   w({ type: Boolean })
 ], j.prototype, "isGroup", 2);
 J([
-  H()
+  V()
 ], j.prototype, "_config", 2);
 J([
-  H()
+  V()
 ], j.prototype, "_activeTab", 2);
 j = J([
   Ft("status-card-delayed-item-editor")
@@ -5659,13 +5662,13 @@ let Y = class extends R {
         group_status: "",
         rules: [{ key: "", value: "" }]
       }
-    ], this._activeTab = "config", this.computeLabel = V(
+    ], this._activeTab = "config", this.computeLabel = $(
       (e, t, i) => !this.hass || !e ? (e == null ? void 0 : e.name) || "" : $t(this.hass, e, t, i)
     ), this._filterInitialized = !1, this._lastFilter = {
       area: [],
       floor: [],
       label: []
-    }, this._groupPreviousIds = /* @__PURE__ */ new Map(), this._schema = V(
+    }, this._groupPreviousIds = /* @__PURE__ */ new Map(), this._schema = $(
       (e, t, i, s, o, n) => {
         switch (e) {
           case "appearance":
@@ -5685,7 +5688,7 @@ let Y = class extends R {
             );
         }
       }
-    ), this._toggleschema = V((e) => [
+    ), this._toggleschema = $((e) => [
       {
         name: "content",
         selector: {
@@ -5706,7 +5709,7 @@ let Y = class extends R {
         e.push(t);
       }
       return e;
-    })(), this._entitiesSchema = V((e) => {
+    })(), this._entitiesSchema = $((e) => {
       const t = this.computeLabel({ name: "area" }), i = this.computeLabel({ name: "label" }), s = this.computeLabel({ name: "entity" });
       return [
         {
@@ -5744,9 +5747,9 @@ let Y = class extends R {
           }
         ] : []
       ];
-    }), this._buildToggleOptions = V(
+    }), this._buildToggleOptions = $(
       (e, t) => this._buildOptions("toggle", e, t)
-    ), this._memoizedClassesForArea = V(
+    ), this._memoizedClassesForArea = $(
       (e, t, i, s, o, n) => this._classesForArea(e, t, i, s, o, n)
     ), this.filterValueSelector = {
       attributes: { object: {} },
@@ -5824,8 +5827,8 @@ let Y = class extends R {
       const d = this._lastFilter.area, h = this._lastFilter.floor, p = this._lastFilter.label, _ = !Q(p, l), g = !Q(h, c), v = !Q(d, r), m = this._config.content === void 0;
       if (v || g || _ || m) {
         const u = this._dynamicOrder, b = this.possibleToggleDomains.map((E) => this._normalizeContentEntry(E)).sort((E, C) => {
-          const $ = u.indexOf(E), T = u.indexOf(C);
-          return ($ === -1 ? u.length : $) - (T === -1 ? u.length : T);
+          const L = u.indexOf(E), T = u.indexOf(C);
+          return (L === -1 ? u.length : L) - (T === -1 ? u.length : T);
         });
         this._config = {
           ...this._config,
@@ -5839,7 +5842,7 @@ let Y = class extends R {
       if (this._config.rulesets && Array.isArray(this._config.rulesets)) {
         const u = this._config.rulesets.filter(
           (C) => Object.keys(C).some(
-            ($) => $ !== "group_id" && $ !== "group_icon" && $ !== "group_status" && C[$] !== void 0 && C[$] !== ""
+            (L) => L !== "group_id" && L !== "group_icon" && L !== "group_status" && C[L] !== void 0 && C[L] !== ""
           )
         ).map((C) => C.group_id).filter((C) => C && C.length > 1);
         let y = Array.isArray(this._config.content) ? [...this._config.content] : [];
@@ -6300,15 +6303,15 @@ let Y = class extends R {
       (C) => D(C.entity_id) === "person"
     );
     if (n.length > 0) {
-      const C = o.person || [], $ = new Set(C.map((I) => I.entity_id)), T = n.filter(
-        (I) => !$.has(I.entity_id)
+      const C = o.person || [], L = new Set(C.map((I) => I.entity_id)), T = n.filter(
+        (I) => !L.has(I.entity_id)
       );
       o.person = [...C, ...T];
     }
     const a = Object.fromEntries(
-      Object.entries(o).map(([C, $]) => [
+      Object.entries(o).map(([C, L]) => [
         C,
-        $.map((T) => T.entity_id)
+        L.map((T) => T.entity_id)
       ])
     ), r = this._hiddenEntitiesByDomain(), c = ((E = this.hass) == null ? void 0 : E.states) || {}, l = Array.from(
       /* @__PURE__ */ new Set([...Object.keys(a), ...Object.keys(r)])
@@ -6316,12 +6319,12 @@ let Y = class extends R {
       c,
       this.hass.locale.language
     );
-    return l.sort((C, $) => C.localeCompare($)).map((C) => {
-      const $ = /* @__PURE__ */ new Set([
+    return l.sort((C, L) => C.localeCompare(L)).map((C) => {
+      const L = /* @__PURE__ */ new Set([
         ...a[C] || [],
         ...r[C] || []
       ]);
-      return { domain: C, entities: Array.from($).sort(d) };
+      return { domain: C, entities: Array.from(L).sort(d) };
     });
   }
   _domainLabel(e) {
@@ -6365,14 +6368,14 @@ let Y = class extends R {
       const u = D(m);
       if (![...tt, "person"].includes(u)) continue;
       const y = i[m], b = y != null && y.device_id ? s[y.device_id] : void 0;
-      if (((y == null ? void 0 : y.area_id) != null || (b == null ? void 0 : b.area_id) != null) && !(d.length && !(Array.isArray(y == null ? void 0 : y.labels) && y.labels.some(($) => d.includes($)) || Array.isArray(b == null ? void 0 : b.labels) && b.labels.some(($) => d.includes($)))) && !(c.length && !(y != null && y.area_id && c.includes(y.area_id) || b != null && b.area_id && c.includes(b.area_id)))) {
+      if (((y == null ? void 0 : y.area_id) != null || (b == null ? void 0 : b.area_id) != null) && !(d.length && !(Array.isArray(y == null ? void 0 : y.labels) && y.labels.some((L) => d.includes(L)) || Array.isArray(b == null ? void 0 : b.labels) && b.labels.some((L) => d.includes(L)))) && !(c.length && !(y != null && y.area_id && c.includes(y.area_id) || b != null && b.area_id && c.includes(b.area_id)))) {
         if (l.length) {
           const C = (y == null ? void 0 : y.area_id) && o.some(
             (T) => T.area_id === y.area_id && T.floor_id && l.includes(T.floor_id)
-          ), $ = (b == null ? void 0 : b.area_id) && o.some(
+          ), L = (b == null ? void 0 : b.area_id) && o.some(
             (T) => T.area_id === b.area_id && T.floor_id && l.includes(T.floor_id)
           );
-          if (!C && !$) continue;
+          if (!C && !L) continue;
         }
         e[u] || (e[u] = []), e[u].push(m);
       }
@@ -6782,16 +6785,16 @@ ot([
   w({ type: Object })
 ], Y.prototype, "_config", 2);
 ot([
-  H()
+  V()
 ], Y.prototype, "_subElementEditorDomain", 2);
 ot([
-  H()
+  V()
 ], Y.prototype, "_subElementEditorEntity", 2);
 ot([
-  H()
+  V()
 ], Y.prototype, "rulesets", 2);
 ot([
-  H()
+  V()
 ], Y.prototype, "_activeTab", 2);
 Y = ot([
   Ft("status-card-delayed-editor")

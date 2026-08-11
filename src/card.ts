@@ -1537,10 +1537,12 @@ export class StatusCard extends LitElement {
     );
 
     const customization = this.getCustomizationForType(groupId);
+    const currentlyActiveEntities =
+      this._getCurrentlyActiveGroupEntities(ruleset);
     const badgeOnlyActiveEntities =
       this._config.badge_only_active_entities ?? true;
     const badgeCount = badgeOnlyActiveEntities
-      ? this._getCurrentlyActiveGroupEntities(ruleset).length
+      ? currentlyActiveEntities.length
       : entities.length;
 
     const handler = this._handleGroupAction(groupId, index, entities);
@@ -1600,7 +1602,7 @@ export class StatusCard extends LitElement {
                   class="entity-state"
                   style=${styleMap(this._parsedGlobalStateCss)}
                 >
-                  ${entities.length}
+                  ${currentlyActiveEntities.length}
                   ${ruleset.group_status ? ` ${ruleset.group_status}` : ""}
                 </div>
               </div>`
@@ -1846,10 +1848,14 @@ export class StatusCard extends LitElement {
     const domain = item.domain;
     const deviceClass = (item as DeviceClassItem).deviceClass;
 
-    const active = this._isOn(domain, deviceClass);
+    const visibleActive = this._isOn(domain, deviceClass);
+    const currentlyActive = this._currentlyActiveEntities(
+      domain,
+      deviceClass,
+    );
     const total = this._totalEntities(domain, deviceClass);
     const showTotal = this._shouldShowTotalEntities(domain, deviceClass);
-    const entities = showTotal ? total : active;
+    const entities = showTotal ? total : visibleActive;
     if (!entities.length) return html``;
 
     const color = getCustomColor(
@@ -1864,7 +1870,7 @@ export class StatusCard extends LitElement {
     const badgeOnlyActiveEntities =
       this._config.badge_only_active_entities ?? true;
     const badgeCount = badgeOnlyActiveEntities
-      ? this._currentlyActiveEntities(domain, deviceClass).length
+      ? currentlyActive.length
       : entities.length;
 
     const handler = this._handleDomainAction(domain, deviceClass);
@@ -1892,7 +1898,7 @@ export class StatusCard extends LitElement {
 
     let stateText;
     if (this._shouldShowTotalNumbers(domain, deviceClass)) {
-      stateText = `${active.length}/${total.length} ${getStatusProperty(
+      stateText = `${currentlyActive.length}/${total.length} ${getStatusProperty(
         this.hass,
         this._config,
         domain,
@@ -1901,7 +1907,7 @@ export class StatusCard extends LitElement {
     } else if (this._shouldShowTotalEntities(domain, deviceClass)) {
       stateText = `${total.length}`;
     } else {
-      stateText = `${active.length} ${getStatusProperty(
+      stateText = `${currentlyActive.length} ${getStatusProperty(
         this.hass,
         this._config,
         domain,
