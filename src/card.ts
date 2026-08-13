@@ -111,7 +111,6 @@ export class StatusCard extends LitElement {
   private _resetGroupTimeout?: ReturnType<typeof setTimeout>;
   private _recentActivityTimeout?: ReturnType<typeof setTimeout>;
   private _inlineCardElementCache = new Map<string, CardElementCache>();
-  private _visibleEntityOrder: string[] = [];
   private _tilePositions = new Map<string, DOMRect>();
   private _exitingTiles: HTMLElement[] = [];
   private _tileAnimationFrame?: number;
@@ -817,11 +816,7 @@ export class StatusCard extends LitElement {
     if (!config) {
       throw new Error("Invalid configuration.");
     }
-    const wasSortingEntities = this._config?.sort_entities === true;
     this._config = config;
-    if (!config.sort_entities || !wasSortingEntities) {
-      this._visibleEntityOrder = [];
-    }
     this.hide_person =
       config.hide_person !== undefined ? config.hide_person : false;
     this.hide_content_name =
@@ -1808,40 +1803,117 @@ export class StatusCard extends LitElement {
     return result;
   }
 
+  private _getInlineSectionTitle(item: AnyItem): string {
+    if (item.type === "extra") return item.name;
+    if (item.type === "group") return item.group_id;
+
+    const deviceClass =
+      item.type === "deviceClass" ? item.deviceClass : undefined;
+    return (
+      getCustomName(this._config, item.domain, deviceClass) ||
+      this.computeLabel({ name: deviceClass || item.domain })
+    );
+  }
+
+  private _renderInlineEntities(
+    personEntities: HassEntity[],
+    items: AnyItem[],
+    inlineEntities: Array<{ entity: HassEntity; contextKey: string }>,
+  ): TemplateResult {
+    const entitiesByContext = new Map<
+      string,
+      Array<{ entity: HassEntity; contextKey: string }>
+    >();
+    for (const inlineEntity of inlineEntities) {
+      const section = entitiesByContext.get(inlineEntity.contextKey) || [];
+      section.push(inlineEntity);
+      entitiesByContext.set(inlineEntity.contextKey, section);
+    }
+
+    const sections: Array<{
+      key: string;
+      title: string;
+      entities: Array<{ entity: HassEntity; contextKey: string }>;
+    }> = [];
+    const people = entitiesByContext.get("person");
+    if (people?.length) {
+      sections.push({
+        key: "person",
+        title: this.computeLabel({ name: "person" }),
+        entities: people,
+      });
+    }
+
+    for (const item of items) {
+      const contextKey =
+        item.type === "extra"
+          ? item.panel
+          : item.type === "group"
+            ? item.group_id
+            : typeKey(
+                item.domain,
+                item.type === "deviceClass" ? item.deviceClass : undefined,
+              );
+      const entities = entitiesByContext.get(contextKey);
+      if (!entities?.length) continue;
+      sections.push({
+        key: contextKey,
+        title: this._getInlineSectionTitle(item),
+        entities,
+      });
+    }
+
+    return html`
+      <div
+        class="inline-entity-sections"
+        style=${styleMap(this._parsedGlobalCardCss)}
+      >
+        ${repeat(
+          sections,
+          (section) => section.key,
+          (section) => html`
+            <section class="inline-entity-section">
+              <div class="inline-section-title">${section.title}</div>
+              <div class="inline-entity-grid">
+                ${repeat(
+                  section.entities,
+                  ({ entity }) => entity.entity_id,
+                  ({ entity, contextKey }) => html`
+                    <div
+                      class="inline-entity-card"
+                      data-animation-key=${`entity:${entity.entity_id}`}
+                    >
+                      ${this._getOrCreateInlineCard(contextKey, entity)}
+                    </div>
+                  `,
+                )}
+              </div>
+            </section>
+          `,
+        )}
+      </div>
+    `;
+  }
+
   private _sortInlineEntitiesByActivation(
     entities: Array<{ entity: HassEntity; contextKey: string }>,
   ): Array<{ entity: HassEntity; contextKey: string }> {
     if (this._config.sort_entities !== true) {
-      this._visibleEntityOrder = [];
       return entities;
     }
 
-    const currentById = new Map(
-      entities.map((item) => [item.entity.entity_id, item]),
-    );
-    const currentIds = new Set(currentById.keys());
-
-    this._visibleEntityOrder = this._visibleEntityOrder.filter((id) =>
-      currentIds.has(id),
-    );
-
-    const orderedIds = new Set(this._visibleEntityOrder);
-    for (const item of entities) {
-      const id = item.entity.entity_id;
-      if (!orderedIds.has(id)) {
-        this._visibleEntityOrder.push(id);
-        orderedIds.add(id);
-      }
-    }
-
-    return this._visibleEntityOrder
-      .map((id) => currentById.get(id))
-      .filter(
-        (
-          item,
-        ): item is { entity: HassEntity; contextKey: string } =>
-          item !== undefined,
-      );
+    return entities
+      .map((item, index) => ({
+        item,
+        index,
+        activatedAt: Date.parse(item.entity.last_changed),
+      }))
+      .sort((a, b) => {
+        const aTime = Number.isFinite(a.activatedAt) ? a.activatedAt : 0;
+        const bTime = Number.isFinite(b.activatedAt) ? b.activatedAt : 0;
+        return aTime - bTime || a.index - b.index;
+      })
+      .map(({ item }) => item);
   }
 
   private renderItemTab(item: DomainItem | DeviceClassItem): TemplateResult {
@@ -2158,25 +2230,7 @@ export class StatusCard extends LitElement {
     if (!this._shouldHideCard) {
       content = !this._config.ungroup_entities
         ? this._renderGroupedEntities(personEntities, sorted)
-        : html`
-            <div
-              class="inline-entity-grid"
-              style=${styleMap(this._parsedGlobalCardCss)}
-            >
-              ${repeat(
-                inlineEntities,
-                ({ entity }) => entity.entity_id,
-                ({ entity, contextKey }) => html`
-                  <div
-                    class="inline-entity-card"
-                    data-animation-key=${`entity:${entity.entity_id}`}
-                  >
-                    ${this._getOrCreateInlineCard(contextKey, entity)}
-                  </div>
-                `,
-              )}
-            </div>
-          `;
+        : this._renderInlineEntities(personEntities, sorted, inlineEntities);
     }
 
     return html`
