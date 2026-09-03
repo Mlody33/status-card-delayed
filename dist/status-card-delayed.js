@@ -2418,7 +2418,7 @@ const tn = [
       this.open && (this.open = !1, (t = window.history.state) != null && t.statusCardDelayedPopup && window.history.back());
     }, this._onDialogClosed = (t) => {
       const i = t.target;
-      i && i.tagName !== "HA-ADAPTIVE-DIALOG" || (this.open = !1, this._cardEls.clear(), this._popupCardConfigCache.clear(), this._cardElementCache.clear(), this.dispatchEvent(
+      i && i.tagName !== "HA-ADAPTIVE-DIALOG" || (this.open = !1, this._cardEls.clear(), this._currentEntitiesCache = [], this._popupCardConfigCache.clear(), this._cardElementCache.clear(), this.dispatchEvent(
         new CustomEvent("dialog-closed", {
           bubbles: !0,
           composed: !0,
@@ -2509,7 +2509,7 @@ const tn = [
     super.connectedCallback(), window.addEventListener("popstate", this._onPopState);
   }
   disconnectedCallback() {
-    super.disconnectedCallback(), window.removeEventListener("popstate", this._onPopState), this._cardEls.clear(), this._popupCardConfigCache.clear(), this._cardElementCache.clear();
+    super.disconnectedCallback(), window.removeEventListener("popstate", this._onPopState), this._cardEls.clear(), this._currentEntitiesCache = [], this._popupCardConfigCache.clear(), this._cardElementCache.clear();
   }
   async _createCardElement(t, i, s = !1) {
     return ge(t, i, s);
