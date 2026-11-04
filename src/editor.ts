@@ -37,6 +37,7 @@ import {
 } from "@mdi/js";
 import { renderStyleGuide } from "./style-guide";
 import { resolveInlineCardConfig } from "./inline-card";
+import { ensureNativeCardEditorLoaded } from "./native-card-editor";
 import { deepEqual } from "./ha/common/util/deep-equal";
 import "./item-editor";
 import "./items-editor";
@@ -91,6 +92,8 @@ export class StatusCardEditor extends LitElement {
   ];
   @state() private _activeTab = "config";
   @state() private _editingEntityFeatures?: string;
+  @state() private _cardEditorReady = !!customElements.get("hui-card-element-editor");
+  @state() private _cardEditorError = "";
 
   // Stable function reference for ha-form's computeLabel.
   private computeLabel = (
@@ -1256,6 +1259,18 @@ export class StatusCardEditor extends LitElement {
     return this.hass.locale.language.startsWith("pl") ? pl : en;
   }
 
+  private async _openEntityFeatures(id: string): Promise<void> {
+    this._editingEntityFeatures = id;
+    this._cardEditorError = "";
+    this._cardEditorReady = !!customElements.get("hui-card-element-editor");
+    try {
+      await ensureNativeCardEditorLoaded();
+      this._cardEditorReady = true;
+    } catch (error) {
+      this._cardEditorError = String(error);
+    }
+  }
+
   private _saveEntityFeatures(event: CustomEvent): void {
     event.stopPropagation();
     const id = this._editingEntityFeatures;
@@ -1311,7 +1326,17 @@ export class StatusCardEditor extends LitElement {
           ${this._featureLabel("Przywróć domyślne funkcje", "Restore default features")}
         </ha-button>
       ` : ""}
-      ${entity ? html`
+      ${this._cardEditorError ? html`
+        <ha-alert alert-type="error">
+          ${this._featureLabel("Nie udało się załadować edytora karty.", "Could not load the card editor.")}
+          ${this._cardEditorError}
+        </ha-alert>
+        <ha-button @click=${() => this._openEntityFeatures(id)}>
+          ${this._featureLabel("Spróbuj ponownie", "Retry")}
+        </ha-button>
+      ` : !this._cardEditorReady ? html`
+        <p role="status">${this._featureLabel("Ładowanie edytora karty…", "Loading card editor…")}</p>
+      ` : entity ? html`
         <hui-card-element-editor
           .hass=${this.hass}
           .lovelace=${this.lovelace}
@@ -1334,7 +1359,7 @@ export class StatusCardEditor extends LitElement {
           data-entity-id=${id}
           .path=${mdiTextBoxEdit}
           .label=${this._featureLabel("Funkcje karty", "Card features")}
-          @click=${() => { this._editingEntityFeatures = id; }}
+          @click=${() => this._openEntityFeatures(id)}
         ></ha-icon-button>
         <ha-icon-button
           .path=${hidden ? mdiEyeOff : mdiEye}

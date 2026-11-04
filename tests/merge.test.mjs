@@ -55,6 +55,67 @@ async function mount(config = {}, states) {
 }
 const tile = card => card.shadowRoot.querySelector('[data-animation-key="domain:light"]');
 
+test('missing HA helpers show an error and allow the loader to retry', async () => {
+  const originalHelpers = window.loadCardHelpers;
+  window.loadCardHelpers = async () => { throw new Error('Temporary loading failure'); };
+  const editor = document.createElement('status-card-delayed-editor');
+  editor.hass = hass();
+  editor.setConfig(base);
+  document.body.append(editor);
+  await editor.updateComplete;
+  await editor._openEntityFeatures('light.a');
+  await editor.updateComplete;
+  assert.ok(editor.shadowRoot.querySelector('ha-alert[alert-type="error"]'));
+  assert.ok(editor.shadowRoot.querySelector('ha-button'));
+  assert.equal(editor.shadowRoot.querySelector('hui-card-element-editor'), null);
+  editor.remove();
+  window.loadCardHelpers = originalHelpers;
+});
+
+test('badge editor loads the native card editor before assigning its configuration', async () => {
+  assert.equal(customElements.get('hui-card-element-editor'), undefined);
+  const originalHelpers = window.loadCardHelpers;
+  let loads = 0;
+  let finish;
+  const wait = new Promise(resolve => { finish = resolve; });
+  class NativeEditor extends HTMLElement {
+    set value(config) { this.config = config; }
+    get value() { return this.config; }
+  }
+  class StackCard extends HTMLElement {
+    static async getConfigElement() {
+      loads++;
+      await wait;
+      customElements.define('hui-card-element-editor', NativeEditor);
+      return document.createElement('div');
+    }
+  }
+  customElements.define('hui-vertical-stack-card', StackCard);
+  window.loadCardHelpers = async () => ({ createCardElement(config) {
+    assert.equal(config.type, 'vertical-stack');
+    return document.createElement('hui-vertical-stack-card');
+  } });
+  const editor = document.createElement('status-card-delayed-editor');
+  editor.hass = hass();
+  editor.setConfig({ ...base, ungroup_entities: true });
+  document.body.append(editor);
+  await editor.updateComplete;
+  const opening = editor._openEntityFeatures('light.a');
+  await editor.updateComplete;
+  assert.ok(editor.shadowRoot.querySelector('[role="status"]'));
+  assert.equal(editor.shadowRoot.querySelector('hui-card-element-editor'), null);
+  finish();
+  await opening;
+  await editor.updateComplete;
+  const native = editor.shadowRoot.querySelector('hui-card-element-editor');
+  assert.ok(native instanceof NativeEditor);
+  assert.equal(native.value.entity, 'light.a');
+  assert.equal(Object.hasOwn(native, 'value'), false);
+  assert.equal(loads, 1);
+  editor.remove();
+  window.loadCardHelpers = originalHelpers;
+});
+
 test('fork registers isolated card and editor names', () => {
   for (const name of ['status-card-delayed', 'status-card-delayed-editor', 'status-card-delayed-item-editor', 'status-card-delayed-items-editor']) {
     assert.ok(customElements.get(name), name);
