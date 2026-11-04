@@ -36,6 +36,8 @@ import {
   mdiHelpCircle,
 } from "@mdi/js";
 import { renderStyleGuide } from "./style-guide";
+import { resolveInlineCardConfig } from "./inline-card";
+import { deepEqual } from "./ha/common/util/deep-equal";
 import "./item-editor";
 import "./items-editor";
 import {
@@ -88,6 +90,7 @@ export class StatusCardEditor extends LitElement {
     },
   ];
   @state() private _activeTab = "config";
+  @state() private _editingEntityFeatures?: string;
 
   // Stable function reference for ha-form's computeLabel.
   private computeLabel = (
@@ -1121,6 +1124,16 @@ export class StatusCardEditor extends LitElement {
       byDomain["person"] = [...existingPersons, ...newPersons];
     }
 
+    for (const id of (this._config.extra_entities ?? []) as string[]) {
+      const entity = this.hass.states[id];
+      if (!entity) continue;
+      const domain = computeDomain(id);
+      const existing = byDomain[domain] ?? [];
+      if (!existing.some(item => item.entity_id === id)) {
+        byDomain[domain] = [...existing, entity];
+      }
+    }
+
     const visible: Record<string, string[]> = Object.fromEntries(
       Object.entries(byDomain).map(([d, ents]) => [
         d,
@@ -1192,8 +1205,7 @@ export class StatusCardEditor extends LitElement {
     const states = this.hass?.states || {};
     const map: Record<string, string[]> = {};
     for (const id of entities) {
-      const dc = (states[id]?.attributes?.device_class as string) || "";
-      if (!dc) continue;
+      const dc = (states[id]?.attributes?.device_class as string) || "other";
       if (!map[dc]) map[dc] = [];
       map[dc].push(id);
     }
@@ -1240,13 +1252,90 @@ export class StatusCardEditor extends LitElement {
     return getDomainIcon(domain, deviceClass) ?? mdiHelpCircle;
   }
 
+  private _featureLabel(pl: string, en: string): string {
+    return this.hass.locale.language.startsWith("pl") ? pl : en;
+  }
+
+  private _saveEntityFeatures(event: CustomEvent): void {
+    event.stopPropagation();
+    const id = this._editingEntityFeatures;
+    if (!id || !event.detail.config || event.detail.error) return;
+    const entity = this.hass.states[id];
+    if (!entity || deepEqual(event.detail.config, resolveInlineCardConfig(this._config, entity, id))) return;
+    const { entity: _entity, ...card } = event.detail.config;
+    const inline_card = card.type === "tile"
+      ? { ...card, features: card.features ?? [] }
+      : card;
+    const customization: LovelaceCardConfig[] = [...(this._config.customization ?? [])];
+    const index = customization.findIndex(item => item.type === id);
+    const updated = { ...(index >= 0 ? customization[index] : { type: id }), inline_card };
+    if (index >= 0) customization[index] = updated;
+    else customization.push(updated);
+    this._config = { ...this._config, customization };
+    fireEvent(this, "config-changed", { config: this._config });
+  }
+
+  private _resetEntityFeatures(): void {
+    const id = this._editingEntityFeatures;
+    const customization = (this._config.customization ?? []).map((item: LovelaceCardConfig) => {
+      if (item.type !== id) return item;
+      const { inline_card: _inline, ...rest } = item;
+      return rest;
+    });
+    this._config = { ...this._config, customization };
+    fireEvent(this, "config-changed", { config: this._config });
+  }
+
+  private _renderEntityFeatures() {
+    const id = this._editingEntityFeatures!;
+    const entity = this.hass.states[id];
+    const overridden = (this._config.customization ?? []).some(
+      (item: LovelaceCardConfig) => item.type === id && item.inline_card,
+    );
+    return html`
+      <div class="header back-title">
+        <ha-icon-button
+          .path=${mdiChevronLeft}
+          .label=${this.hass.localize("ui.common.back") || "Back"}
+          @click=${() => { this._editingEntityFeatures = undefined; }}
+        ></ha-icon-button>
+        <span>${entity?.attributes.friendly_name || id}</span>
+      </div>
+      <p>${id}</p>
+      <p>${this._featureLabel(
+        "W sekcji Funkcje wybierz kontrolki dla tej encji i ustaw ich położenie na Inline. Konfiguracja dotyczy tylko tej encji w kartach sekcji.",
+        "In Features, select the controls for this entity and set their position to Inline. These settings apply only to this entity inside section cards.",
+      )}</p>
+      ${overridden ? html`
+        <ha-button @click=${this._resetEntityFeatures}>
+          ${this._featureLabel("Przywróć domyślne funkcje", "Restore default features")}
+        </ha-button>
+      ` : ""}
+      ${entity ? html`
+        <hui-card-element-editor
+          .hass=${this.hass}
+          .lovelace=${this.lovelace}
+          .value=${resolveInlineCardConfig(this._config, entity, id)}
+          @config-changed=${this._saveEntityFeatures}
+        ></hui-card-element-editor>
+      ` : html`<p>${this._featureLabel("Encja jest niedostępna.", "Entity is unavailable.")}</p>`}
+    `;
+  }
+
   private _renderEntityRow(id: string) {
     const hidden = this._isHiddenEntity(id);
     return html`
       <div class="entity-row">
-        <span class="entity-name">
+        <span class="entity-name" title=${id}>
           ${this.hass.states[id]?.attributes?.friendly_name || id}
         </span>
+        <ha-icon-button
+          class="entity-features"
+          data-entity-id=${id}
+          .path=${mdiTextBoxEdit}
+          .label=${this._featureLabel("Funkcje inline", "Inline features")}
+          @click=${() => { this._editingEntityFeatures = id; }}
+        ></ha-icon-button>
         <ha-icon-button
           .path=${hidden ? mdiEyeOff : mdiEye}
           .label=${hidden
@@ -1286,6 +1375,7 @@ export class StatusCardEditor extends LitElement {
       ...this._config,
     };
 
+    if (this._editingEntityFeatures) return this._renderEntityFeatures();
     if (this._subElementEditorDomain)
       return this._renderSubElementEditorDomain();
     if (this._subElementEditorEntity)
@@ -1367,8 +1457,7 @@ export class StatusCardEditor extends LitElement {
                   @value-changed=${this._valueChanged}
                 ></ha-form>
 
-                ${(this._config?.hide_filter ?? "") === "entity"
-                  ? html`
+                ${html`
                       ${this._groupAllEntitiesByDomain().map(
                         (group) => html`
                           <ha-expansion-panel outlined class="domain-panel">
@@ -1419,8 +1508,7 @@ export class StatusCardEditor extends LitElement {
                           </ha-expansion-panel>
                         `,
                       )}
-                    `
-                  : html``}
+                    `}
               </div>
             </ha-expansion-panel>
 

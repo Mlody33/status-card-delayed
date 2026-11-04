@@ -60,12 +60,16 @@ type remains `custom:status-card-delayed`.
 
 ### Features on entity cards inside sections
 
-With `ungroup_entities: true`, open the visual editor's domain/device-class
-customizations, add a domain, smart group, or individual entity, and select its
-**Entity card features** tab (**Funkcje kart** in Polish). The embedded Home Assistant
-card editor lets you add, remove, reorder and configure features, including their
-position. For a domain or group, select a representative entity to show the
-features supported by that entity. This selection is only used by the editor.
+In the visual editor, expand **Entities** (**Encje** in Polish), find the entity,
+and click its **Inline features** button beside the show/hide button. This opens
+the normal Home Assistant card editor for that entity. In **Features**, add,
+remove and configure controls, and set the feature position to **Inline**.
+The entity list is available regardless of the selected hide filter.
+
+Changes apply to that entity's card when `ungroup_entities: true`. Use
+**Restore default features** to remove its override. Opening the editor does not
+create an override. Domain and smart group overrides from earlier versions remain
+supported under the content customizations.
 
 Settings are saved under `customization[].inline_card`. The most specific override
 wins: individual entity, then section/group, then domain/device class. Each override

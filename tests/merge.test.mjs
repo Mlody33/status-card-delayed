@@ -291,3 +291,62 @@ test('entity feature tab is assigned to the HA navigation slot and opens on clic
   assert.ok(item.shadowRoot.querySelector('hui-card-element-editor'));
   item.remove();
 });
+
+test('Entities rows open the selected thermostat feature editor independently of hide filter', async () => {
+  const climate = thermostat();
+  const editor = document.createElement('status-card-delayed-editor');
+  editor.hass = hass({ [climate.entity_id]: climate, 'light.a': entity('light.a', 'on') });
+  editor.setConfig({ ...base, ungroup_entities: true, content: ['climate', 'light'], hide_filter: 'area' });
+  document.body.append(editor);
+  await editor.updateComplete;
+  const button = editor.shadowRoot.querySelector('.entity-features[data-entity-id="climate.heating"]');
+  assert.ok(button);
+  let saves = 0;
+  editor.addEventListener('config-changed', () => saves++);
+  button.click();
+  await editor.updateComplete;
+  let native = editor.shadowRoot.querySelector('hui-card-element-editor');
+  assert.equal(native.value.entity, climate.entity_id);
+  // HA sends config-changed on initialization; opening must not create an override.
+  native.dispatchEvent(new CustomEvent('config-changed', { detail: { config: native.value } }));
+  assert.equal(saves, 0);
+  native.dispatchEvent(new CustomEvent('config-changed', { detail: { config: {
+    ...native.value, features: targetTemperature, features_position: 'inline',
+  } } }));
+  await editor.updateComplete;
+  const override = editor._config.customization.find(item => item.type === climate.entity_id);
+  assert.deepEqual(override.inline_card.features, targetTemperature);
+  assert.equal(override.inline_card.features_position, 'inline');
+  assert.equal(override.inline_card.entity, undefined);
+  assert.equal(editor._config.extra_entities, undefined);
+  native = editor.shadowRoot.querySelector('hui-card-element-editor');
+  native.dispatchEvent(new CustomEvent('config-changed', { detail: { config: { type: 'tile', entity: climate.entity_id, features_position: 'inline' } } }));
+  await editor.updateComplete;
+  assert.deepEqual(editor._config.customization.find(item => item.type === climate.entity_id).inline_card.features, []);
+  editor.shadowRoot.querySelector('ha-button').click();
+  await editor.updateComplete;
+  assert.equal(editor._config.customization.find(item => item.type === climate.entity_id).inline_card, undefined);
+  native = editor.shadowRoot.querySelector('hui-card-element-editor');
+  const before = saves;
+  native.dispatchEvent(new CustomEvent('config-changed', { detail: { config: native.value } }));
+  assert.equal(saves, before);
+  editor.shadowRoot.querySelector('ha-icon-button').click();
+  await editor.updateComplete;
+  assert.ok(editor.shadowRoot.querySelector('.entity-features[data-entity-id="climate.heating"]'));
+  const card = await mount({ ...editor._config, customization: [{ type: climate.entity_id, inline_card: override.inline_card }] }, { [climate.entity_id]: climate });
+  assert.deepEqual(card.shadowRoot.querySelector('hui-tile-card').config.features, targetTemperature);
+  card.remove();
+  editor.remove();
+});
+
+test('feature buttons include extra entities outside area filters and covers without device class', async () => {
+  const editor = document.createElement('status-card-delayed-editor');
+  editor.hass = hass({ 'climate.heating': thermostat(), 'cover.blind': entity('cover.blind', 'open') });
+  editor.hass = { ...editor.hass, entities: { 'cover.blind': editor.hass.entities['cover.blind'] } };
+  editor.setConfig({ ...base, ungroup_entities: true, extra_entities: ['climate.heating'], content: ['climate.heating', 'cover'] });
+  document.body.append(editor);
+  await editor.updateComplete;
+  assert.ok(editor.shadowRoot.querySelector('.entity-features[data-entity-id="climate.heating"]'));
+  assert.ok(editor.shadowRoot.querySelector('.entity-features[data-entity-id="cover.blind"]'));
+  editor.remove();
+});
