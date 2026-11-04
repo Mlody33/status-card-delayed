@@ -58,6 +58,44 @@ Build with `npm ci && npm run build`. Run `npm test` for the build and DOM regre
 tests. The Home Assistant resource remains `status-card-delayed.js`, and the card
 type remains `custom:status-card-delayed`.
 
+### Features on entity cards inside sections
+
+With `ungroup_entities: true`, open the visual editor's domain/device-class
+customizations, add a domain, smart group, or individual entity, and select its
+**Entity card features** tab (**Funkcje kart** in Polish). The embedded Home Assistant
+card editor lets you add, remove, reorder and configure features, including their
+position. For a domain or group, select a representative entity to show the
+features supported by that entity. This selection is only used by the editor.
+
+Settings are saved under `customization[].inline_card`. The most specific override
+wins: individual entity, then section/group, then domain/device class. Each override
+configures the whole entity card. **Restore inherited settings** removes the local
+override. These settings apply to section cards; popup settings remain separate.
+Existing `popup_card` configurations continue to work as a fallback.
+
+For example, show a heating thermostat's target-temperature control inline:
+
+```yaml
+type: custom:status-card-delayed
+ungroup_entities: true
+content:
+  - climate
+customization:
+  - type: climate
+    inline_card:
+      type: tile
+      features_position: inline
+      features:
+        - type: target-temperature
+```
+
+Use `type: climate.your_thermostat` instead of `type: climate` to customize only
+one thermostat. Use `features: []` to hide all controls. For heating mode buttons,
+use `type: climate-hvac-modes` with `hvac_modes: [heat, "off"]`; the native editor
+shows the options supported by the selected entity. See the
+[Home Assistant feature documentation](https://www.home-assistant.io/dashboards/features/)
+for other controls.
+
 ### 🎥 Video Tutorial
 
 Want to see the Status Card Delayed in action? Check out this excellent showcase and tutorial video (🇩🇪 German language):

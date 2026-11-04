@@ -68,7 +68,7 @@ import {
 } from "./card-styles";
 import { handleDomainAction, toggleDomain } from "./card-actions";
 import { mdiFormatListGroup } from "@mdi/js";
-import { getDomainFeatures } from "./const";
+import { resolveInlineCardConfig } from "./inline-card";
 import {
   createCardElement,
   createCardElementSynchronous,
@@ -1663,48 +1663,7 @@ export class StatusCard extends LitElement {
     groupId: string,
     entity: HassEntity,
   ): LovelaceCardConfig {
-    const groupCustomization = this.getCustomizationForType(groupId);
-    if (groupCustomization?.popup_card) {
-      return {
-        ...groupCustomization.popup_card,
-        entity: entity.entity_id,
-      } as LovelaceCardConfig;
-    }
-
-    const domain = computeDomain(entity.entity_id);
-    const deviceClass = entity.attributes.device_class;
-    const customization = this.getCustomizationForType(
-      typeKey(domain, deviceClass),
-    );
-    const popupCard = customization?.popup_card;
-    const resolvedType =
-      popupCard && typeof popupCard.type === "string"
-        ? popupCard.type
-        : "tile";
-    const baseOptions =
-      resolvedType === "tile"
-        ? {
-            ...getDomainFeatures(domain, entity),
-            features_position: this._config.inline_feature
-              ? "inline"
-              : "bottom",
-          }
-        : {};
-    const overrideOptions =
-      popupCard && typeof popupCard === "object"
-        ? Object.fromEntries(
-            Object.entries(popupCard).filter(
-              ([key]) => key !== "type" && key !== "entity",
-            ),
-          )
-        : {};
-
-    return {
-      type: resolvedType,
-      entity: entity.entity_id,
-      ...baseOptions,
-      ...overrideOptions,
-    } as LovelaceCardConfig;
+    return resolveInlineCardConfig(this._config, entity, groupId, this._custMap);
   }
 
   private _getOrCreateInlineCard(

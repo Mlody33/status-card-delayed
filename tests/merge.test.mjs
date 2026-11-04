@@ -170,3 +170,124 @@ test('remote inline sections preserve domain order and sort entities by activati
   assert.deepEqual([...sections[1].querySelectorAll('.inline-entity-card')].map(el => el.dataset.animationKey), ['entity:light.b', 'entity:light.a']);
   card.remove();
 });
+
+const thermostat = () => ({
+  ...entity('climate.heating', 'heat'),
+  attributes: { friendly_name: 'Heating', current_temperature: 20, temperature: 21, hvac_modes: ['heat', 'off'], supported_features: 1 },
+});
+const targetTemperature = [{ type: 'target-temperature' }];
+
+test('section cards accept climate features and per-entity overrides without changing popups', async () => {
+  const climate = thermostat();
+  const card = await mount({
+    content: ['climate'], ungroup_entities: true,
+    customization: [{ type: 'climate', inline_card: { type: 'tile', features: targetTemperature, features_position: 'inline' } }],
+  }, { [climate.entity_id]: climate });
+  let rendered = card.shadowRoot.querySelector('hui-tile-card');
+  assert.deepEqual(rendered.config.features, targetTemperature);
+  assert.equal(rendered.config.features_position, 'inline');
+  assert.equal(rendered.config.entity, climate.entity_id);
+  const popup = document.createElement('status-card-delayed-popup');
+  popup.card = card;
+  popup.hass = card.hass;
+  popup.selectedDomain = 'climate';
+  assert.equal(popup._getPopupCardConfig(climate).features[0].type, 'climate-hvac-modes');
+
+  card.setConfig({ ...card._config, customization: [
+    ...card._config.customization,
+    { type: climate.entity_id, inline_card: { type: 'tile', features: [], entity: 'climate.other' } },
+  ] });
+  await card.updateComplete;
+  rendered = card.shadowRoot.querySelector('hui-tile-card');
+  assert.deepEqual(rendered.config.features, []);
+  assert.equal(rendered.config.entity, climate.entity_id);
+  card.remove();
+});
+
+test('inline overrides follow entity, section, domain precedence and keep legacy cards', async () => {
+  const climate = thermostat();
+  const card = await mount({ content: ['climate'], customization: [
+    { type: 'climate', popup_card: { type: 'tile', name: 'Legacy' }, inline_card: { type: 'tile', name: 'Domain', features: targetTemperature } },
+    { type: 'Heating group', popup_card: { type: 'thermostat' }, inline_card: { type: 'tile', name: 'Group', features: [] } },
+    { type: climate.entity_id, inline_card: { type: 'tile', name: 'Entity', features: targetTemperature } },
+  ] }, { [climate.entity_id]: climate });
+  assert.equal(card._getInlineCardConfig('Heating group', climate).name, 'Entity');
+  card.setConfig({ ...card._config, customization: card._config.customization.slice(0, 2) });
+  assert.equal(card._getInlineCardConfig('Heating group', climate).name, 'Group');
+  card.setConfig({ ...card._config, customization: [card._config.customization[0], { type: 'Heating group', popup_card: { type: 'thermostat' } }] });
+  assert.equal(card._getInlineCardConfig('Heating group', climate).name, 'Domain');
+  card.setConfig({ ...card._config, customization: [
+    { type: 'climate', popup_card: { type: 'tile', name: 'Legacy' } },
+    { type: 'Heating group', popup_card: { type: 'thermostat' } },
+  ] });
+  assert.equal(card._getInlineCardConfig('Heating group', climate).type, 'thermostat');
+  assert.equal(card._getInlineCardConfig('climate', climate).name, 'Legacy');
+  card.remove();
+});
+
+test('feature editor saves and clears features, restores inheritance and keeps preview local', async () => {
+  const climate = thermostat();
+  const item = document.createElement('status-card-delayed-item-editor');
+  item.config = { type: 'Heating group' };
+  item.parentConfig = { ...base, customization: [item.config] };
+  item.hass = hass({ [climate.entity_id]: climate });
+  item.isGroup = true;
+  item.getSchema = 'domain';
+  item._activeTab = 'inline';
+  document.body.append(item);
+  await item.updateComplete;
+  let changed;
+  item.addEventListener('config-changed', event => { changed = event.detail.config; });
+  item.shadowRoot.querySelector('ha-selector').dispatchEvent(new CustomEvent('value-changed', { detail: { value: climate.entity_id } }));
+  await item.updateComplete;
+  assert.equal(changed, undefined);
+  let editor = item.shadowRoot.querySelector('hui-card-element-editor');
+  assert.equal(editor.value.entity, climate.entity_id);
+  editor.dispatchEvent(new CustomEvent('config-changed', { detail: { config: { type: 'tile', entity: climate.entity_id, features: targetTemperature, features_position: 'inline' } } }));
+  await item.updateComplete;
+  assert.deepEqual(changed.inline_card.features, targetTemperature);
+  assert.equal(changed.inline_card.entity, undefined);
+  assert.equal(changed.inline_card.features_position, 'inline');
+  // Saving in the parent must retain the group's selected preview entity.
+  item.config = changed;
+  await item.updateComplete;
+  editor = item.shadowRoot.querySelector('hui-card-element-editor');
+  assert.ok(editor);
+  editor.dispatchEvent(new CustomEvent('config-changed', { detail: { config: { type: 'tile', entity: climate.entity_id } } }));
+  await item.updateComplete;
+  assert.deepEqual(changed.inline_card.features, []);
+  assert.deepEqual(item.shadowRoot.querySelector('hui-card-element-editor').value.features, []);
+  item.shadowRoot.querySelector('ha-button').click();
+  await item.updateComplete;
+  assert.equal(changed.inline_card, undefined);
+  assert.equal(item.shadowRoot.querySelector('hui-card-element-editor').value.features[0].type, 'climate-hvac-modes');
+  item.remove();
+});
+
+test('individual entities are available for customization without adding extra cards', () => {
+  const climate = thermostat();
+  const editor = document.createElement('status-card-delayed-editor');
+  editor.hass = hass({ [climate.entity_id]: climate });
+  editor.setConfig({ ...base, content: ['climate'], ungroup_entities: true });
+  assert.ok(editor.contentSelectOptions.some(option => option.value === climate.entity_id));
+  assert.equal(editor._config.extra_entities, undefined);
+  assert.deepEqual(editor._config.content, ['climate']);
+});
+
+test('entity feature tab is assigned to the HA navigation slot and opens on click', async () => {
+  const item = document.createElement('status-card-delayed-item-editor');
+  item.config = { type: 'climate' };
+  item.hass = hass({ 'climate.heating': thermostat() });
+  item.getSchema = 'domain';
+  document.body.append(item);
+  await item.updateComplete;
+  const tabs = [...item.shadowRoot.querySelectorAll('ha-tab-group-tab')];
+  assert.equal(tabs.length, 5);
+  assert.ok(tabs.every(tab => tab.slot === 'nav' && tab.hasAttribute('panel')));
+  const featureTab = tabs.find(tab => tab.getAttribute('panel') === 'inline');
+  assert.ok(featureTab);
+  featureTab.click();
+  await item.updateComplete;
+  assert.ok(item.shadowRoot.querySelector('hui-card-element-editor'));
+  item.remove();
+});

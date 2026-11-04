@@ -9,6 +9,8 @@ export interface LovelaceCardConfig {
   type: string;
   rulesets?: Ruleset[];
   activate_state_color?: boolean;
+  /** Card override for entities rendered inside inline sections. */
+  inline_card?: LovelaceCardConfig;
   [key: string]: any;
 }
 

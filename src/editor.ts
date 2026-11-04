@@ -527,7 +527,12 @@ export class StatusCardEditor extends LitElement {
 
   public get contentSelectOptions(): SelectOption[] {
     const content = this._config.content ?? [];
-    return this._buildOptions(content, content);
+    const types = [...new Set([
+      ...content,
+      ...(this._config.customization ?? []).map((item: LovelaceCardConfig) => item.type),
+      ...(this._config.ungroup_entities ? Object.keys(this.hass.states) : []),
+    ])];
+    return this._buildOptions(types, types);
   }
 
   private _buildToggleOptions = memoizeOne(
@@ -789,6 +794,7 @@ export class StatusCardEditor extends LitElement {
         .getSchema=${editorKey}
         .index=${editor?.index ?? 0}
         .isGroup=${isGroup}
+        .parentConfig=${this._config}
         @config-changed=${itemChangedHandler}
       >
       </status-card-delayed-item-editor>
