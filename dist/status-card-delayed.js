@@ -9445,7 +9445,7 @@ var $ = class extends D {
         <span>${t?.attributes.friendly_name || e}</span>
       </div>
       <p>${e}</p>
-      <p>${this._featureLabel("W sekcji Funkcje wybierz kontrolki dla tej encji i ustaw ich położenie na Inline. Konfiguracja dotyczy tylko tej encji w kartach sekcji.", "In Features, select the controls for this entity and set their position to Inline. These settings apply only to this entity inside section cards.")}</p>
+      <p>${this._featureLabel("W sekcji Funkcje wybierz i skonfiguruj kontrolki dla tej encji. Możesz wyświetlać je obok treści karty lub pod spodem.", "In Features, select and configure the controls for this entity. You can display them beside the card content or underneath it.")}</p>
       ${n ? x`
         <ha-button @click=${this._resetEntityFeatures}>
           ${this._featureLabel("Przywróć domyślne funkcje", "Restore default features")}
@@ -9472,7 +9472,7 @@ var $ = class extends D {
           class="entity-features"
           data-entity-id=${e}
           .path=${hr}
-          .label=${this._featureLabel("Funkcje inline", "Inline features")}
+          .label=${this._featureLabel("Funkcje karty", "Card features")}
           @click=${() => {
 			this._editingEntityFeatures = e;
 		}}

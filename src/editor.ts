@@ -1303,8 +1303,8 @@ export class StatusCardEditor extends LitElement {
       </div>
       <p>${id}</p>
       <p>${this._featureLabel(
-        "W sekcji Funkcje wybierz kontrolki dla tej encji i ustaw ich położenie na Inline. Konfiguracja dotyczy tylko tej encji w kartach sekcji.",
-        "In Features, select the controls for this entity and set their position to Inline. These settings apply only to this entity inside section cards.",
+        "W sekcji Funkcje wybierz i skonfiguruj kontrolki dla tej encji. Możesz wyświetlać je obok treści karty lub pod spodem.",
+        "In Features, select and configure the controls for this entity. You can display them beside the card content or underneath it.",
       )}</p>
       ${overridden ? html`
         <ha-button @click=${this._resetEntityFeatures}>
@@ -1333,7 +1333,7 @@ export class StatusCardEditor extends LitElement {
           class="entity-features"
           data-entity-id=${id}
           .path=${mdiTextBoxEdit}
-          .label=${this._featureLabel("Funkcje inline", "Inline features")}
+          .label=${this._featureLabel("Funkcje karty", "Card features")}
           @click=${() => { this._editingEntityFeatures = id; }}
         ></ha-icon-button>
         <ha-icon-button

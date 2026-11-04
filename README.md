@@ -61,9 +61,10 @@ type remains `custom:status-card-delayed`.
 ### Features on entity cards inside sections
 
 In the visual editor, expand **Entities** (**Encje** in Polish), find the entity,
-and click its **Inline features** button beside the show/hide button. This opens
+and click its **Card features** button beside the show/hide button. This opens
 the normal Home Assistant card editor for that entity. In **Features**, add,
-remove and configure controls, and set the feature position to **Inline**.
+remove and configure controls, and choose whether they appear inline or below the
+card content.
 The entity list is available regardless of the selected hide filter.
 
 Changes apply to that entity's card when `ungroup_entities: true`. Use
