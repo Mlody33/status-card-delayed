@@ -1,5 +1,6 @@
 import { HomeAssistant, Schema } from "./ha";
 import { ALLOWED_DOMAINS, deviceClasses } from "./const";
+import { getTranslation, translations } from "./translations-data";
 
 export function translateEntityState(
   hass: HomeAssistant,
@@ -13,28 +14,19 @@ export function translateEntityState(
 }
 
 const LABEL_MAP: Record<string, (hass: HomeAssistant) => string> = {
-  square: (hass) => hass.localize("ui.panel.lovelace.editor.card.grid.square"),
-  hide_person_name: (hass) =>
-    `${hass.localize("ui.common.hide")} ${hass.localize(
-      "component.person.entity_component._.name"
-    )} ${hass.localize("ui.common.name")}`,
+  square: (hass) =>
+    getTranslation("square", hass.locale.language),
   hide_content_name: (hass) =>
-    `${hass.localize("ui.common.hide")} ${hass.localize(
-      "ui.panel.lovelace.editor.card.markdown.content"
-    )} ${hass.localize("ui.common.name")}`,
+    getTranslation("hide_content_name", hass.locale.language),
   hide_person: (hass) =>
     `${hass.localize("ui.common.hide")} ${hass.localize(
       "component.person.entity_component._.name"
     )}`,
   list_mode: (hass) =>
-    `${hass.localize("ui.card.common.turn_on")} ${hass.localize(
-      "ui.components.media-browser.list"
-    )} ${hass.localize("ui.dialogs.helper_settings.input_text.mode")}`,
+    getTranslation("list_mode", hass.locale.language),
   inline_feature: () => "Show entity card features inline",
   columns: (hass) =>
-    `${hass.localize(
-      "ui.panel.lovelace.editor.action-editor.actions.more-info"
-    )} ${hass.localize("ui.panel.lovelace.editor.card.grid.columns")}`,
+    getTranslation("columns", hass.locale.language),
   edit_filters: (hass) =>
     `${hass.localize("ui.panel.lovelace.editor.common.edit")} ${hass.localize(
       "ui.components.subpage-data-table.filters"
@@ -55,36 +47,25 @@ const LABEL_MAP: Record<string, (hass: HomeAssistant) => string> = {
   entity: (hass) =>
     hass.localize("ui.components.selectors.selector.types.entity"),
   hide_filter: (hass) =>
-    `${hass.localize("ui.common.hide")} ${hass.localize(
-      "ui.panel.lovelace.editor.card.entities.name"
-    )}`,
+    getTranslation("hide_filter", hass.locale.language),
   edit_domains_dc: (hass) =>
-    `${hass.localize("ui.panel.lovelace.editor.common.edit")} ${hass.localize(
-      "ui.panel.lovelace.editor.card.markdown.content"
-    )}`,
+    getTranslation("edit_domains_dc", hass.locale.language),
   icon: (hass) => hass.localize("ui.components.selectors.selector.types.icon"),
   color: (hass) => hass.localize("ui.panel.lovelace.editor.card.tile.color"),
   background_color: (hass) =>
-    `${hass.localize(
-      "ui.panel.lovelace.editor.card.generic.icon"
-    )} ${hass.localize(
-      "ui.panel.lovelace.editor.edit_view.tab_background"
-    )} ${hass.localize("ui.panel.lovelace.editor.card.tile.color")}`,
+    getTranslation("background_color", hass.locale.language),
   multiple_areas: (hass) =>
-    `Multi ${hass.localize("ui.panel.lovelace.editor.card.area.name")}`,
+    getTranslation("multiple_areas", hass.locale.language),
   multiple_floors: (hass) =>
-    `Multi ${hass.localize("ui.components.selectors.selector.types.floor")}`,
+    getTranslation("multiple_floors", hass.locale.language),
   show_total_number: (hass) =>
-    `${hass.localize("ui.common.enable")} ${hass.localize(
-      "component.sensor.entity_component._.state_attributes.state_class.state.total"
-    )} ${hass.localize("component.number.entity_component._.name")}`,
+    getTranslation("show_total_number", hass.locale.language),
   show_total_entities: (hass) =>
-    `${hass.localize("ui.common.enable")} ${hass.localize(
-      "component.sensor.entity_component._.state_attributes.state_class.state.total"
-    )} ${hass.localize("ui.panel.lovelace.editor.card.entities.name")}`,
+    getTranslation("show_total_entities", hass.locale.language),
   sort_entities: () => "Sort entities by activation time",
   recently_active_seconds: () => "Show recently active entities (seconds)",
   ungroup_entities: () => "Show entity cards without grouping",
+  badge_only_active_entities: () => "Count only currently active entities in badge",
   appearance: (hass) =>
     hass.localize("ui.panel.lovelace.editor.card.tile.appearance") ||
     "Appearance",
@@ -94,21 +75,17 @@ const LABEL_MAP: Record<string, (hass: HomeAssistant) => string> = {
     hass.localize("ui.panel.lovelace.editor.card.generic.hold_action"),
   double_tap_action: (hass) =>
     hass.localize("ui.panel.lovelace.editor.card.generic.double_tap_action"),
-  popup_card: () => "Change Popup Card Type",
+  popup_card: (hass) =>
+    getTranslation("popup_card_type", hass.locale.language),
+  styles: (hass) => getTranslation("styles", hass.locale.language),
   group_id: (hass) =>
-    `${hass.localize(
-      "component.group.entity_component._.name"
-    )} ${hass.localize("ui.common.name")}`,
+    getTranslation("group_id", hass.locale.language),
   group_icon: (hass) =>
-    `${hass.localize(
-      "component.group.entity_component._.name"
-    )} ${hass.localize("ui.panel.lovelace.editor.card.generic.icon")}`,
+    getTranslation("group_icon", hass.locale.language),
   group_status: (hass) =>
-    `${hass.localize(
-      "component.group.entity_component._.name"
-    )} ${hass.localize(
-      "ui.components.selectors.selector.types.state"
-    )} (${hass.localize("ui.panel.lovelace.editor.card.config.optional")})`,
+    `${getTranslation("group_status", hass.locale.language)} (${hass.localize(
+      "ui.panel.lovelace.editor.card.config.optional"
+    )})`,
   hide: (hass) => hass.localize("ui.common.hide"),
   state: (hass) =>
     hass.localize("ui.components.entity.entity-state-picker.state"),
@@ -120,22 +97,17 @@ const LABEL_MAP: Record<string, (hass: HomeAssistant) => string> = {
     hass.localize("ui.panel.lovelace.editor.card.tile.show_entity_picture"),
   name: (hass) => hass.localize("ui.common.name"),
   no_scroll: (hass) =>
-    `${hass.localize(
-      "ui.panel.lovelace.editor.edit_view_header.settings.badges_wrap_options.wrap"
-    )} ${hass.localize("ui.panel.lovelace.editor.card.generic.content")}`,
+    getTranslation("no_scroll", hass.locale.language),
   popup: () => "Popup",
   ungroup_areas: (hass) =>
-    `${hass.localize("ui.common.disable")} ${hass.localize(
-      "ui.panel.lovelace.editor.card.area.name"
-    )} ${hass.localize("component.group.entity_component._.name")}`,
-  popup_sort: () => "Popup Sort",
+    getTranslation("ungroup_areas", hass.locale.language),
+  popup_sort: (hass) =>
+    getTranslation("popup_sort", hass.locale.language),
   state_content: (hass) =>
     hass.localize("ui.panel.lovelace.editor.card.tile.state_content"),
   hide_card_if_empty: (hass) =>
-    `${hass.localize("ui.common.hide")} Status Card Delayed if empty`,
-  badge_mode: (hass) => `${hass.localize("ui.common.enable")} Badge `,
-  badge_only_active_entities: () =>
-    "Count only currently active entities in badge",
+    getTranslation("hide_card_if_empty", hass.locale.language),
+  display_mode: (hass) => getTranslation("display_mode", hass.locale.language),
   badge_color: (hass) =>
     `Badge ${hass.localize("ui.panel.lovelace.editor.card.tile.color")}`,
   badge_text_color: (hass) =>
@@ -160,9 +132,7 @@ const LABEL_MAP: Record<string, (hass: HomeAssistant) => string> = {
       "component.person.entity_component._.state.not_home"
     )} ${hass.localize("ui.components.selectors.selector.types.icon")}`,
   no_background: (hass) =>
-    `${hass.localize("ui.common.hide")} ${hass.localize(
-      "ui.panel.lovelace.editor.edit_view.tab_background"
-    )}`,
+    getTranslation("no_background", hass.locale.language),
   activate_state_color: (hass) =>
     `${hass.localize(
       "ui.panel.lovelace.editor.card.generic.state_color"
@@ -176,21 +146,36 @@ function getHeaderLabel(
 ): string {
   if (domain && deviceClass) {
     if (domain === "switch" && deviceClass === "switch") {
-      return `${hass.localize(
-        "ui.panel.lovelace.editor.card.entities.name"
-      )} in ${hass.localize("component.switch.entity_component._.name")}`;
+      return entitiesIn(
+        hass,
+        hass.localize("component.switch.entity_component._.name")
+      );
     }
-    return `${hass.localize(
-      "ui.panel.lovelace.editor.card.entities.name"
-    )} in ${hass.localize(
-      `ui.dialogs.entity_registry.editor.device_classes.${domain}.${deviceClass}`
-    )}`;
+    return entitiesIn(
+      hass,
+      hass.localize(
+        `ui.dialogs.entity_registry.editor.device_classes.${domain}.${deviceClass}`
+      )
+    );
   } else if (domain) {
-    return `${hass.localize(
-      "ui.panel.lovelace.editor.card.entities.name"
-    )} in ${hass.localize(`component.${domain}.entity_component._.name`)}`;
+    return entitiesIn(
+      hass,
+      hass.localize(`component.${domain}.entity_component._.name`)
+    );
   }
   return hass.localize("ui.panel.lovelace.editor.card.entities.name");
+}
+
+/** "Entities in <name>"; languages without own text keep HA's word for "Entities". */
+export function entitiesIn(hass: HomeAssistant, name: string): string {
+  const lang = hass.locale.language;
+  const tpl =
+    translations.entities_in[lang] ??
+    translations.entities_in[lang.split("-")[0]];
+  if (tpl) return tpl.replace("{name}", name);
+  return `${hass.localize(
+    "ui.panel.lovelace.editor.card.entities.name"
+  )} in ${name}`;
 }
 
 function getDefaultLabel(hass: HomeAssistant, name: string): string {

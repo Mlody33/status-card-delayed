@@ -1,19 +1,21 @@
 {
   "name": "status-card-delayed",
-  "version": "v3.4.0",
+  "version": "3.4.0",
   "type": "module",
-  "devDependencies": {
-    "typescript": "^5.7.2",
-    "vite": "^6.3.5"
+  "scripts": {
+    "build": "tsc && vite build",
+    "dev": "vite",
+    "test": "npm run build && node --test tests/*.test.mjs"
   },
   "dependencies": {
     "@mdi/js": "^7.4.47",
-    "home-assistant-js-websocket": "^9.4.0",
-    "lit": "^3.2.1",
+    "lit": "^3.3.3",
     "memoize-one": "^6.0.0"
   },
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build"
+  "devDependencies": {
+    "happy-dom": "^21.0.4",
+    "home-assistant-js-websocket": "^9.4.0",
+    "typescript": "~7.0.2",
+    "vite": "^8.3.4"
   }
 }

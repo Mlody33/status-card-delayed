@@ -38,7 +38,25 @@ I always wanted to make an overview card that shows a lot of entities without th
 
 ## 📥⚙️ Documentation
 
-For more Info visit the [Documentation](https://xbourner.github.io/status-card/).
+For more Info visit the [Documentation](https://xbourner.github.io/card-docu/status-card/).
+
+### Fork configuration and upstream compatibility
+
+This fork keeps `recently_active_seconds`, `sort_entities`, `ungroup_entities`,
+`inline_feature`, animated tiles, and `badge_only_active_entities` (default: `true`).
+Delayed entities remain visible while badge counts show currently active entities;
+set `badge_only_active_entities: false` to count all visible entities instead.
+
+Use `display_mode: standard`, `badge`, or `chip` on the card or an item. Existing
+`badge_mode: true/false` configurations still work; `display_mode` takes precedence
+when both are set. The editor exposes the new display mode selector.
+
+The local `docs/` directory preserves this fork's earlier documentation. Refer to
+the upstream documentation linked above for new display modes and count styles.
+
+Build with `npm ci && npm run build`. Run `npm test` for the build and DOM regression
+tests. The Home Assistant resource remains `status-card-delayed.js`, and the card
+type remains `custom:status-card-delayed`.
 
 ### 🎥 Video Tutorial
 

@@ -1,5 +1,22 @@
 import { Schema, HomeAssistant, UiAction } from "./ha";
 import { computeLabelCallback } from "./translations";
+import { getTranslation } from "./translations-data";
+
+const DESIGNS = ["standard", "badge", "chip"] as const;
+
+// Not required: an empty item design follows the card design.
+const designField = (hass: HomeAssistant) => ({
+  name: "display_mode",
+  selector: {
+    select: {
+      mode: "dropdown",
+      options: DESIGNS.map((value) => ({
+        value,
+        label: getTranslation(`design_${value}`, hass.locale.language),
+      })),
+    },
+  },
+});
 
 export function getConfigSchema(
   hass: HomeAssistant,
@@ -156,6 +173,7 @@ export function getAppearanceSchema(
   BadgeMode: boolean,
 ): Schema[] {
   return [
+    designField(hass),
     {
       name: "",
       type: "grid",
@@ -201,7 +219,6 @@ export function getAppearanceSchema(
           name: "hide_card_if_empty",
           selector: { boolean: {} },
         },
-        { name: "badge_mode", selector: { boolean: {} } },
         {
           name: "badge_only_active_entities",
           selector: { boolean: {} },
@@ -272,7 +289,8 @@ export function getAppearanceSchema(
   ];
 }
 
-export function getActionsSchema(hass: HomeAssistant): Schema[] {
+// Shared by the card editor and the per item editor.
+export function getActionsSchema(): Schema[] {
   const actions: UiAction[] = [
     "more-info",
     "toggle",
@@ -297,12 +315,12 @@ export const getItemAppearanceSchema = (
 ): Schema[] => {
   if (type === "domain") {
     return [
+      designField(hass!),
       {
         name: "",
         type: "grid",
         schema: [
           ...(!isGroup ? [{ name: "invert", selector: { boolean: {} } }] : []),
-          { name: "badge_mode", selector: { boolean: {} } },
           ...(badgeMode
             ? ([
                 {
@@ -417,39 +435,7 @@ export const getItemAppearanceSchema = (
   ];
 };
 
-export const getItemActionsSchema = (
-  type: "domain" | "entity",
-  entityId?: string,
-  hass?: HomeAssistant,
-  badgeMode?: boolean,
-): Schema[] => {
-  const actions: UiAction[] = [
-    "more-info",
-    "toggle",
-    "navigate",
-    "url",
-    "perform-action",
-    "none",
-  ];
-
-  return [
-    { name: "tap_action", selector: { ui_action: { actions } } },
-    { name: "double_tap_action", selector: { ui_action: { actions } } },
-    { name: "hold_action", selector: { ui_action: { actions } } },
-  ];
-};
-
-export const getItemStyleSchema = (): Schema[] => {
-  return [
-    {
-      name: "styles",
-      selector: {
-        object: {},
-      },
-    },
-  ];
-};
-
+// Shared by the card editor and the per item editor.
 export const getStyleSchema = (): Schema[] => {
   return [
     {

@@ -153,6 +153,46 @@ export const cardStyles = css`
   ha-tab-group-tab.badge-mode::part(base) {
     padding: 0 4px !important;
   }
+  /* Chip design: each item as a pill, icon left, name and state stacked. */
+  /* Margin on the chip itself, so per item chips in other designs get it too. */
+  ha-tab-group-tab.chip-mode {
+    margin: 0 3px;
+  }
+  ha-tab-group-tab.chip-mode::part(base) {
+    padding: 0 !important;
+  }
+  ha-tab-group-tab.chip-mode .entity,
+  ha-tab-group-tab.chip-mode .extra-entity {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 14px 4px 4px;
+    border-radius: 999px;
+    background-color: rgba(var(--rgb-primary-text-color), 0.06);
+  }
+  .square ha-tab-group-tab.chip-mode .entity,
+  .square ha-tab-group-tab.chip-mode .extra-entity {
+    border-radius: 12px;
+  }
+  ha-tab-group-tab.chip-mode .entity .entity-icon,
+  ha-tab-group-tab.chip-mode .extra-entity .entity-icon {
+    width: 32px;
+    height: 32px;
+    --mdc-icon-size: 18px;
+  }
+  ha-tab-group-tab.chip-mode .entity .entity-info,
+  ha-tab-group-tab.chip-mode .extra-entity .entity-info {
+    margin-top: 0;
+    padding-left: 0;
+    text-align: left;
+    line-height: 1.15;
+  }
+  ha-tab-group-tab.chip-mode .entity-name {
+    font-size: 13px;
+  }
+  ha-tab-group-tab.chip-mode .entity-state {
+    font-size: 11px;
+  }
   ha-tab-group.no-scroll::part(tabs) {
     display: flex;
     flex-wrap: wrap;
@@ -201,26 +241,6 @@ export const cardStyles = css`
   ha-tab-group-tab {
     position: relative;
     overflow: visible;
-  }
-  ha-tab-group-tab[data-badge]::after {
-    content: attr(data-badge);
-    position: absolute;
-    top: 0;
-    right: 0;
-    min-width: 20px;
-    height: 20px;
-    border-radius: 10px;
-    background-color: var(--status-card-delayed-badge-color, var(--primary-color));
-    color: var(--status-card-delayed-badge-text-color, var(--text-primary-color));
-    font-size: 0.75rem;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 4px;
-    box-sizing: border-box;
-    z-index: 1;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
   }
   .count-badge {
     position: absolute;
@@ -344,9 +364,39 @@ export const cardStyles = css`
     0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
     40% { transform: translateY(-6px); }
     60% { transform: translateY(-3px); }
-    }
   }
 `;
+
+export type StyleArea = "button" | "icon" | "name" | "state";
+export type ParsedStyles = Partial<Record<StyleArea, Record<string, string>>>;
+export interface CountLevel {
+  min: number;
+  styles: ParsedStyles;
+}
+
+const STYLE_AREAS: StyleArea[] = ["button", "icon", "name", "state"];
+
+/** styles.count levels, parsed and sorted by min (highest first). */
+export const parseCountStyles = (
+  levels: ({ min?: number | string } & Partial<Record<StyleArea, string>>)[],
+): CountLevel[] =>
+  levels
+    .filter((l) => l && typeof l === "object")
+    .map((l) => ({
+      min: Number(l.min ?? 0),
+      styles: Object.fromEntries(
+        STYLE_AREAS.filter((a) => l[a]).map((a) => [a, parseCss(l[a])]),
+      ) as ParsedStyles,
+    }))
+    // A typo like "min: three" drops the level instead of matching everything.
+    .filter((l) => !Number.isNaN(l.min))
+    .sort((a, b) => b.min - a.min);
+
+/** Styles of the highest level whose min the count reaches. */
+export const getCountStyles = (
+  levels: CountLevel[] | undefined,
+  count: number,
+): ParsedStyles => levels?.find((l) => count >= l.min)?.styles ?? {};
 
 export const customizationIndex = (list?: LovelaceCardConfig[]) => {
   const map = new Map<string, LovelaceCardConfig>();
@@ -359,6 +409,11 @@ export const customizationIndex = (list?: LovelaceCardConfig[]) => {
         copy._parsedCss = { ...copy._parsedCss, ...buttonStyles };
       }
       if (copy.styles?.icon) copy._parsedIconCss = parseCss(copy.styles.icon);
+      if (copy.styles?.name) copy._parsedNameCss = parseCss(copy.styles.name);
+      if (copy.styles?.state) copy._parsedStateCss = parseCss(copy.styles.state);
+      if (Array.isArray(copy.styles?.count)) {
+        copy._countLevels = parseCountStyles(copy.styles.count);
+      }
       map.set(copy.type.toLowerCase(), copy);
     }
   });
@@ -426,29 +481,28 @@ export function getCustomIcon(
   }
 
   const isInverted = customization?.invert === true;
-  const state = isInverted ? "off" : "on";
   let fallbackDomain = domain;
   if (!deviceClass && domain.includes(".")) {
     fallbackDomain = domain.split(".")[0];
   }
 
-  if (DOMAIN_ICONS && DOMAIN_ICONS[fallbackDomain]) {
-    const icons = DOMAIN_ICONS[fallbackDomain];
-    if (deviceClass && typeof icons === "object") {
-      const dc = icons[deviceClass];
-      if (dc) {
-        if (typeof dc === "string") return dc;
-        if (typeof dc === "object" && "on" in dc && "off" in dc)
-          return dc[state] || dc["on"] || dc["off"];
-      }
-    }
-    if (typeof icons === "object" && "on" in icons && "off" in icons) {
-      return icons[state] || icons["on"] || icons["off"];
-    }
-    if (typeof icons === "string") return icons;
-  }
+  return (
+    getDomainIcon(fallbackDomain, deviceClass, isInverted ? "off" : "on") ?? ""
+  );
+}
 
-  return "";
+/** Default icon from DOMAIN_ICONS; device class icons win over the domain icon. */
+export function getDomainIcon(
+  domain: string,
+  deviceClass?: string,
+  state: "on" | "off" = "on",
+): string | undefined {
+  const icons = DOMAIN_ICONS[domain];
+  if (!icons) return undefined;
+  const dc = deviceClass ? icons[deviceClass] : undefined;
+  if (typeof dc === "string") return dc;
+  if (dc) return dc[state] || dc.on || dc.off;
+  return icons[state] || icons.on || icons.off;
 }
 
 export function getBackgroundColor(
@@ -583,14 +637,8 @@ export function getStatusProperty(
   domain: string,
   deviceClass?: string,
   state?: string,
-  showTotalEntities?: boolean,
-  showTotalNumbers?: boolean,
   customizationMap?: Map<string, LovelaceCardConfig>,
 ): string {
-  if (showTotalEntities && !showTotalNumbers) {
-    return "";
-  }
-
   const key = typeKey(domain, deviceClass);
   const customization = getCustomizationForType(config, key, customizationMap);
   const isInverted = customization?.invert === true;
@@ -608,6 +656,17 @@ export function getStatusProperty(
   }
 }
 
+/**
+ * Colour from config / ui_color selector to CSS: raw CSS colours pass through,
+ * names become theme variables ("red" -> var(--red-color)). "state" means "no
+ * override" and returns undefined so the default colour applies.
+ */
+export function toCssColor(color?: string): string | undefined {
+  if (!color || color === "state") return undefined;
+  if (/^(#|rgb|hsl|var\()/.test(color)) return color;
+  return `var(--${color}-color)`;
+}
+
 export function getIconStyles(
   type: "person" | "extra" | "domain" | "deviceClass",
   options: {
@@ -621,14 +680,7 @@ export function getIconStyles(
   const base: Record<string, string | undefined> = {
     "border-radius": square ? "20%" : "50%",
     "background-color": background_color,
-    color: color
-      ? color.startsWith("rgb") ||
-        color.startsWith("#") ||
-        color.startsWith("hsl") ||
-        color.startsWith("var")
-        ? color
-        : `var(--${color}-color)`
-      : undefined,
+    color: toCssColor(color),
   };
 
   if (type === "person" && isNotHome) {

@@ -15,7 +15,6 @@ import {
   HomeAssistant,
   computeDomain,
   Schema,
-  STATES_OFF,
 } from "./ha";
 import {
   compareByFriendlyName,
@@ -25,17 +24,16 @@ import {
   createCardElementSynchronous,
   ensureHelpersLoaded,
 } from "./helpers";
-import { computeLabelCallback, translateEntityState } from "./translations";
-import { getDomainFeatures } from "./const";
+import {
+  computeLabelCallback,
+  entitiesIn,
+  translateEntityState,
+} from "./translations";
+import { getTranslation, TranslationKey } from "./translations-data";
+import { CONTROLLABLE_DOMAINS, getDomainFeatures } from "./const";
 import { toggleDomain } from "./card-actions";
 import { StatusCard } from "./card";
 import { PopupCardConfigCache, CardElementCache } from "./ha/types";
-
-const TOGGLEABLE_POPUP_DOMAINS = [
-  "light", "switch", "fan", "cover", "siren", "climate", "humidifier",
-  "valve", "remote", "media_player", "lock", "vacuum",
-  "alarm_control_panel", "lawn_mower", "water_heater", "update",
-];
 
 export class StatusCardPopup extends LitElement {
   @property({ type: Boolean }) public open = false;
@@ -43,7 +41,6 @@ export class StatusCardPopup extends LitElement {
   @property({ type: String }) public selectedDomain?: string;
   @property({ type: String }) public selectedDeviceClass?: string;
   @property({ type: String }) public content = "";
-  @property({ type: Array }) public entities: HassEntity[] = [];
   set hass(value: HomeAssistant | undefined) {
     const old = this._hass;
     this._hass = value;
@@ -88,7 +85,6 @@ export class StatusCardPopup extends LitElement {
       this._allEntities = this._activeEntities;
     }
 
-    this.entities = params.entities ?? [];
     if (params.content !== undefined) this.content = params.content;
     this.selectedDomain = params.selectedDomain;
     this.selectedDeviceClass = params.selectedDeviceClass;
@@ -98,6 +94,7 @@ export class StatusCardPopup extends LitElement {
     this._showAll = params.initialShowAll ?? false;
     this.open = true;
     window.history.pushState({ statusCardDelayedPopup: true }, "");
+    this._historyPushed = true;
     await ensureHelpersLoaded();
     if (!customElements.get("hui-tile-card")) {
       try {
@@ -133,12 +130,22 @@ export class StatusCardPopup extends LitElement {
   };
 
 
-  private _close = () => {
-    if (!this.open) return;
-    this.open = false;
+  // Our history entry must be removed however the dialog closes (X, ESC, backdrop),
+  // but only once - a close via the browser back button already removed it.
+  private _historyPushed = false;
+
+  private _popHistory() {
+    if (!this._historyPushed) return;
+    this._historyPushed = false;
     if (window.history.state?.statusCardDelayedPopup) {
       window.history.back();
     }
+  }
+
+  private _close = () => {
+    if (!this.open) return;
+    this.open = false;
+    this._popHistory();
   };
 
   private _onDialogClosed = (ev: Event) => {
@@ -147,7 +154,9 @@ export class StatusCardPopup extends LitElement {
       return;
     }
     this.open = false;
+    this._popHistory();
     this._cardEls.clear();
+    this._currentEntitiesCache = [];
     this._popupCardConfigCache.clear();
     this._cardElementCache.clear();
     this.dispatchEvent(
@@ -175,23 +184,17 @@ export class StatusCardPopup extends LitElement {
     super.disconnectedCallback();
     window.removeEventListener("popstate", this._onPopState);
     this._cardEls.clear();
+    this._currentEntitiesCache = [];
     this._popupCardConfigCache.clear();
     this._cardElementCache.clear();
   }
 
-  private _onPopState = (ev: PopStateEvent) => {
+  private _onPopState = () => {
     if (this.open && !window.history.state?.statusCardDelayedPopup) {
+      this._historyPushed = false;
       this.open = false;
     }
   };
-
-  private async _createCardElement(
-    hass: HomeAssistant,
-    cardConfig: LovelaceCardConfig,
-    isFallback = false
-  ): Promise<LovelaceCard | HTMLElement> {
-    return createCardElement(hass, cardConfig, isFallback);
-  }
 
   private _getPopupCardConfig(entity: HassEntity) {
     const card = this.card;
@@ -353,7 +356,7 @@ export class StatusCardPopup extends LitElement {
     placeholder.classList.add("card-placeholder");
     placeholder.setAttribute("data-hui-card", "");
     this._cardEls.set(id, placeholder);
-    this._createCardElement(this.hass!, cfg).then((el) => {
+    createCardElement(this.hass!, cfg).then((el) => {
       try {
         const current = this._cardEls.get(id);
         if (current === placeholder) {
@@ -391,10 +394,16 @@ export class StatusCardPopup extends LitElement {
     return this.hass?.states[entity.entity_id] || entity;
   }
 
+  // Same rule as the card tile: filters the popup and drives "sort by state".
+  // Inversion belongs to a domain tile, so smart group popups ignore it.
   private _isEntityActive(entity: HassEntity): boolean {
     const domain = this.selectedDomain || computeDomain(entity.entity_id);
     const deviceClass =
       this.selectedDeviceClass || entity.attributes.device_class;
+    const isInverted =
+      !!this.selectedDomain &&
+      this.card?.getCustomizationForType?.(typeKey(domain, deviceClass))
+        ?.invert === true;
 
     if (typeof this.card?.isEntityVisibleAsActive === "function") {
       return this.card.isEntityVisibleAsActive(
@@ -404,7 +413,7 @@ export class StatusCardPopup extends LitElement {
       );
     }
 
-    return isEntityActive(entity, domain, deviceClass);
+    return isEntityActive(entity, domain, deviceClass, isInverted);
   }
 
   private _getCurrentEntities(): HassEntity[] {
@@ -427,12 +436,14 @@ export class StatusCardPopup extends LitElement {
     this._showAll = !this._showAll;
   }
 
-  public computeLabel = memoizeOne(
-    (schema: Schema, domain?: string, deviceClass?: string): string => {
-      if (!this.hass || !schema) return schema?.name || "";
-      return computeLabelCallback(this.hass, schema, domain, deviceClass);
-    }
-  );
+  public computeLabel = (
+    schema: Schema,
+    domain?: string,
+    deviceClass?: string
+  ): string => {
+    if (!this.hass || !schema) return schema?.name || "";
+    return computeLabelCallback(this.hass, schema, domain, deviceClass);
+  };
 
   private _handleMenuAction(e: CustomEvent) {
     const action = (e.detail.item as HTMLElement & { action?: string })?.action;
@@ -477,11 +488,7 @@ export class StatusCardPopup extends LitElement {
     );
     if (areaEntities.length === 0) return;
 
-    toggleDomain(this.hass, areaEntities, domain, this.selectedDeviceClass);
-  }
-
-  private _stopPropagation(e: Event) {
-    e.stopPropagation();
+    toggleDomain(this.hass, areaEntities, domain);
   }
 
   private getAreaForEntity(entity: HassEntity): string {
@@ -504,80 +511,31 @@ export class StatusCardPopup extends LitElement {
     const domain = this.selectedDomain;
     if (!domain) return false;
     if (domain.includes(".")) return false;
-    return TOGGLEABLE_POPUP_DOMAINS.includes(domain);
+    return CONTROLLABLE_DOMAINS.includes(domain);
   }
 
   private _getDomainToggleLabel(inverted: boolean): string {
     const domain = this.selectedDomain;
-    const offLabels: Record<string, string> = {
-      light: "Turn off lights",
-      switch: "Turn off switches",
-      fan: "Turn off fans",
-      cover: "Close covers",
-      siren: "Turn off sirens",
-      climate: "Turn off climate",
-      humidifier: "Turn off humidifiers",
-      valve: "Close valves",
-      remote: "Turn off remotes",
-      media_player: "Turn off players",
-      lock: "Lock",
-      vacuum: "Stop vacuums",
-      alarm_control_panel: "Disarm",
-      lawn_mower: "Pause mowers",
-      water_heater: "Turn off water heaters",
-      update: "Skip updates",
-    };
-    const onLabels: Record<string, string> = {
-      light: "Turn on lights",
-      switch: "Turn on switches",
-      fan: "Turn on fans",
-      cover: "Open covers",
-      siren: "Turn on sirens",
-      climate: "Turn on climate",
-      humidifier: "Turn on humidifiers",
-      valve: "Open valves",
-      remote: "Turn on remotes",
-      media_player: "Turn on players",
-      lock: "Unlock",
-      vacuum: "Start vacuums",
-      alarm_control_panel: "Arm",
-      lawn_mower: "Start mowers",
-      water_heater: "Turn on water heaters",
-      update: "Install updates",
-    };
     if (!domain) {
       return inverted
         ? this.hass!.localize("ui.card.common.turn_on")
         : this.hass!.localize("ui.card.common.turn_off");
     }
-    return inverted ? (onLabels[domain] ?? "Turn on") : (offLabels[domain] ?? "Turn off");
+    const prefix = inverted ? "on" : "off";
+    const key = CONTROLLABLE_DOMAINS.includes(domain)
+      ? `${prefix}_${domain}`
+      : `toggle_${prefix}`;
+    return getTranslation(key as TranslationKey, this.hass!.locale.language);
   }
 
   private _getDomainAreaToggleLabel(areaName: string): string {
     const domain = this.selectedDomain;
-    const areaLabels: Record<string, string> = {
-      light: `Toggle lights in ${areaName}`,
-      switch: `Toggle switches in ${areaName}`,
-      fan: `Toggle fans in ${areaName}`,
-      cover: `Toggle covers in ${areaName}`,
-      siren: `Toggle sirens in ${areaName}`,
-      climate: `Toggle climate in ${areaName}`,
-      humidifier: `Toggle humidifiers in ${areaName}`,
-      valve: `Toggle valves in ${areaName}`,
-      remote: `Toggle remotes in ${areaName}`,
-      media_player: `Toggle players in ${areaName}`,
-      lock: `Toggle locks in ${areaName}`,
-      vacuum: `Toggle vacuums in ${areaName}`,
-      alarm_control_panel: `Toggle alarm in ${areaName}`,
-      lawn_mower: `Toggle mowers in ${areaName}`,
-      water_heater: `Toggle water heaters in ${areaName}`,
-      update: `Skip updates in ${areaName}`,
-    };
-    return domain ? (areaLabels[domain] ?? `Toggle all in ${areaName}`) : `Toggle all in ${areaName}`;
-  }
-
-  private _isActive(e: HassEntity): boolean {
-    return !STATES_OFF.includes(e.state);
+    const key =
+      domain && CONTROLLABLE_DOMAINS.includes(domain)
+        ? `area_${domain}`
+        : "area_all";
+    return getTranslation(key as TranslationKey, this.hass!.locale.language)
+      .replace("{area}", areaName);
   }
 
   private _popupCardConfigCache = new Map<string, PopupCardConfigCache>();
@@ -594,8 +552,8 @@ export class StatusCardPopup extends LitElement {
       if (mode === "state") {
         const cmp = compareByFriendlyName(hassStates, locale);
         return arr.sort((a, b) => {
-          const aActive = this._isActive(a) ? 0 : 1;
-          const bActive = this._isActive(b) ? 0 : 1;
+          const aActive = this._isEntityActive(a) ? 0 : 1;
+          const bActive = this._isEntityActive(b) ? 0 : 1;
           if (aActive !== bActive) return aActive - bActive;
           const aDom = computeDomain(a.entity_id);
           const bDom = computeDomain(b.entity_id);
@@ -679,6 +637,34 @@ export class StatusCardPopup extends LitElement {
     }
   );
 
+  private _renderAreaHeader(
+    areaId: string,
+    areaMap: Map<string, string>,
+    suffix = "",
+  ) {
+    const areaName =
+      areaMap.get(areaId) ??
+      (areaId === "unassigned"
+        ? getTranslation("unassigned", this.hass!.locale.language)
+        : areaId);
+    return html`
+      <div class="area-header">
+        <h4>${areaName}${suffix}</h4>
+        ${this._isToggleableDomain
+          ? html`<ha-icon-button
+              class="area-toggle-btn"
+              .path=${mdiToggleSwitchOutline}
+              @click=${(e: Event) => {
+                e.stopPropagation();
+                this.toggleArea(areaId);
+              }}
+              label="${this._getDomainAreaToggleLabel(areaName)}"
+            ></ha-icon-button>`
+          : ""}
+      </div>
+    `;
+  }
+
   protected render() {
     if (!this.hass) return html``;
 
@@ -758,15 +744,8 @@ export class StatusCardPopup extends LitElement {
             const group = this.selectedGroup;
             const card = this.card;
             if (group !== undefined && card._config?.content?.[group]) {
-              const groupId = card._config.content[group];
-              return (
-                this.hass!.localize(
-                  "ui.panel.lovelace.editor.card.entities.name"
-                ) +
-                " in " +
-                groupId
-    );
-  };
+              return entitiesIn(this.hass!, card._config.content[group]);
+            }
             return this.selectedDomain && this.selectedDeviceClass
               ? this.computeLabel(
                   { name: "header" },
@@ -829,7 +808,7 @@ export class StatusCardPopup extends LitElement {
             `
           : ""}
         <div class="dialog-content scrollable ha-scrollbar" @hass-more-info=${this._handleMoreInfo}>
-          ${this.card?.list_mode
+          ${isListMode
             ? !ungroupAreas
               ? html`
                   <ul class="entity-list">
@@ -837,25 +816,9 @@ export class StatusCardPopup extends LitElement {
                       sortedGroups,
                       ([areaId]) => areaId,
                       ([areaId, groupEntities]) => {
-                        const areaName =
-                          areaMap.get(areaId) ??
-                          (areaId === "unassigned" ? "Unassigned" : areaId);
                         return html`
                           <li class="entity-item">
-                            <div class="area-header">
-                              <h4>${areaName}:</h4>
-                              ${this._isToggleableDomain
-                                ? html`<ha-icon-button
-                                    class="area-toggle-btn"
-                                    .path=${mdiToggleSwitchOutline}
-                                    @click=${(e: Event) => {
-                                      e.stopPropagation();
-                                      this.toggleArea(areaId);
-                                    }}
-                                    label="${this._getDomainAreaToggleLabel(areaName)}"
-                                  ></ha-icon-button>`
-                                : ""}
-                            </div>
+                            ${this._renderAreaHeader(areaId, areaMap, ":")}
                             <ul>
                               ${repeat(
                                 groupEntities,
@@ -884,25 +847,9 @@ export class StatusCardPopup extends LitElement {
                 `
             : !ungroupAreas
             ? html`${sortedGroups.map(([areaId, groupEntities]) => {
-                const areaName =
-                  areaMap.get(areaId) ??
-                  (areaId === "unassigned" ? "Unassigned" : areaId);
                 return html`
                   <div class="cards-wrapper">
-                    <div class="area-header">
-                      <h4>${areaName}</h4>
-                      ${this._isToggleableDomain
-                        ? html`<ha-icon-button
-                            class="area-toggle-btn"
-                            .path=${mdiToggleSwitchOutline}
-                            @click=${(e: Event) => {
-                              e.stopPropagation();
-                              this.toggleArea(areaId);
-                            }}
-                            label="${this._getDomainAreaToggleLabel(areaName)}"
-                          ></ha-icon-button>`
-                        : ""}
-                    </div>
+                    ${this._renderAreaHeader(areaId, areaMap)}
                     <div class="entity-cards">
                       ${repeat(
                         groupEntities,
@@ -954,27 +901,11 @@ export class StatusCardPopup extends LitElement {
       --ha-bottom-sheet-max-height: var(--ha-bottom-sheet-height) !important;
     }
 
-    .dialog-header {
-      display: flex;
-      justify-content: flex-start;
-      align-items: center;
-      gap: 8px;
-      min-width: 15vw;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.07);
-      background: transparent;
-    }
-    .dialog-header h3 {
-      flex-grow: 1;
-      margin: 0;
-    }
-    .dialog-header .menu-button {
-      margin-left: auto;
-    }
+    /* Padding (not margin) inside the scroll area leaves room for card
+       shadows from themes; the scroll box clips at its own edge. */
     .dialog-content.scrollable {
-      margin-bottom: 16px;
+      padding: 4px 8px 24px;
+      box-sizing: border-box;
       max-height: 80vh;
       overflow-y: auto;
       scrollbar-width: none;
@@ -990,7 +921,6 @@ export class StatusCardPopup extends LitElement {
       justify-content: center;
       box-sizing: border-box;
       width: 100%;
-      overflow-x: auto;
     }
     .entity-list {
       list-style: none;
@@ -1033,7 +963,6 @@ export class StatusCardPopup extends LitElement {
       gap: 8px;
       width: 100%;
       box-sizing: border-box;
-      overflow-x: hidden;
       justify-content: center;
       padding: 8px;
     }
@@ -1085,7 +1014,6 @@ export class StatusCardPopup extends LitElement {
       .cards-wrapper {
         align-items: stretch;
         width: 100%;
-        overflow-x: hidden;
       }
       .entity-cards {
         grid-template-columns: 1fr;
@@ -1124,7 +1052,19 @@ class StatusCardPopupConfirmation extends LitElement {
     this.selectedDeviceClass = params.selectedDeviceClass;
     this.open = true;
     window.history.pushState({ statusCardDelayedPopupConfirm: true }, "");
+    this._historyPushed = true;
     this.requestUpdate();
+  }
+
+  // See StatusCardPopup._popHistory.
+  private _historyPushed = false;
+
+  private _popHistory() {
+    if (!this._historyPushed) return;
+    this._historyPushed = false;
+    if (window.history.state?.statusCardDelayedPopupConfirm) {
+      window.history.back();
+    }
   }
 
   connectedCallback(): void {
@@ -1139,6 +1079,7 @@ class StatusCardPopupConfirmation extends LitElement {
 
   private _onPopState = () => {
     if (this.open && !window.history.state?.statusCardDelayedPopupConfirm) {
+      this._historyPushed = false;
       this.open = false;
     }
   };
@@ -1146,9 +1087,7 @@ class StatusCardPopupConfirmation extends LitElement {
   private _close = () => {
     if (!this.open) return;
     this.open = false;
-    if (window.history.state?.statusCardDelayedPopupConfirm) {
-      window.history.back();
-    }
+    this._popHistory();
   };
 
   private _onDialogClosed = (ev: Event) => {
@@ -1157,6 +1096,7 @@ class StatusCardPopupConfirmation extends LitElement {
       return;
     }
     this.open = false;
+    this._popHistory();
     this.dispatchEvent(
       new CustomEvent("dialog-closed", { bubbles: true, composed: true })
     );
