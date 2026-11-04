@@ -290,7 +290,7 @@ var De = (e, t) => {
 						index: a,
 						name: r[2],
 						strings: n,
-						ctor: r[1] === "." ? je : r[1] === "?" ? Me : r[1] === "@" ? Ne : E
+						ctor: r[1] === "." ? Me : r[1] === "?" ? Ne : r[1] === "@" ? Pe : je
 					}), i.removeAttribute(e);
 				} else e.startsWith(_) && (c.push({
 					type: 6,
@@ -350,7 +350,7 @@ var ke = class {
 		for (; s !== void 0;) {
 			if (a === s.index) {
 				let t;
-				s.type === 2 ? t = new Ae(i, i.nextSibling, this, e) : s.type === 1 ? t = new s.ctor(i, s.name, s.strings, this, e) : s.type === 6 && (t = new Pe(i, this, e)), this._$AV.push(t), s = n[++o];
+				s.type === 2 ? t = new Ae(i, i.nextSibling, this, e) : s.type === 1 ? t = new s.ctor(i, s.name, s.strings, this, e) : s.type === 6 && (t = new Fe(i, this, e)), this._$AV.push(t), s = n[++o];
 			}
 			a !== s?.index && (i = w.nextNode(), a++);
 		}
@@ -416,7 +416,7 @@ var ke = class {
 	setConnected(e) {
 		this._$AM === void 0 && (this._$Cv = e, this._$AP?.(e));
 	}
-}, E = class {
+}, je = class {
 	get tagName() {
 		return this.element.tagName;
 	}
@@ -438,21 +438,21 @@ var ke = class {
 	j(e) {
 		e === C ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, e ?? "");
 	}
-}, je = class extends E {
+}, Me = class extends je {
 	constructor() {
 		super(...arguments), this.type = 3;
 	}
 	j(e) {
 		this.element[this.name] = e === C ? void 0 : e;
 	}
-}, Me = class extends E {
+}, Ne = class extends je {
 	constructor() {
 		super(...arguments), this.type = 4;
 	}
 	j(e) {
 		this.element.toggleAttribute(this.name, !!e && e !== C);
 	}
-}, Ne = class extends E {
+}, Pe = class extends je {
 	constructor(e, t, n, r, i) {
 		super(e, t, n, r, i), this.type = 5;
 	}
@@ -464,7 +464,7 @@ var ke = class {
 	handleEvent(e) {
 		typeof this._$AH == "function" ? this._$AH.call(this.options?.host ?? this.element, e) : this._$AH.handleEvent(e);
 	}
-}, Pe = class {
+}, Fe = class {
 	constructor(e, t, n) {
 		this.element = e, this.type = 6, this._$AN = void 0, this._$AM = t, this.options = n;
 	}
@@ -474,7 +474,7 @@ var ke = class {
 	_$AI(e) {
 		T(this, e);
 	}
-}, Fe = {
+}, Ie = {
 	M: fe,
 	P: _,
 	A: pe,
@@ -484,21 +484,21 @@ var ke = class {
 	D: _e,
 	V: T,
 	I: Ae,
-	H: E,
-	N: Me,
-	U: Ne,
-	B: je,
-	F: Pe
-}, Ie = ce.litHtmlPolyfillSupport;
-Ie?.(Oe, Ae), (ce.litHtmlVersions ??= []).push("3.3.3");
-var Le = (e, t, n) => {
+	H: je,
+	N: Ne,
+	U: Pe,
+	B: Me,
+	F: Fe
+}, Le = ce.litHtmlPolyfillSupport;
+Le?.(Oe, Ae), (ce.litHtmlVersions ??= []).push("3.3.3");
+var Re = (e, t, n) => {
 	let r = n?.renderBefore ?? t, i = r._$litPart$;
 	if (i === void 0) {
 		let e = n?.renderBefore ?? null;
 		r._$litPart$ = i = new Ae(t.insertBefore(he(), e), e, void 0, n ?? {});
 	}
 	return i._$AI(e), i;
-}, Re = globalThis, D = class extends g {
+}, ze = globalThis, E = class extends g {
 	constructor() {
 		super(...arguments), this.renderOptions = { host: this }, this._$Do = void 0;
 	}
@@ -508,7 +508,7 @@ var Le = (e, t, n) => {
 	}
 	update(e) {
 		let t = this.render();
-		this.hasUpdated || (this.renderOptions.isConnected = this.isConnected), super.update(e), this._$Do = Le(t, this.renderRoot, this.renderOptions);
+		this.hasUpdated || (this.renderOptions.isConnected = this.isConnected), super.update(e), this._$Do = Re(t, this.renderRoot, this.renderOptions);
 	}
 	connectedCallback() {
 		super.connectedCallback(), this._$Do?.setConnected(!0);
@@ -520,22 +520,22 @@ var Le = (e, t, n) => {
 		return S;
 	}
 };
-D._$litElement$ = !0, D.finalized = !0, Re.litElementHydrateSupport?.({ LitElement: D });
-var ze = Re.litElementPolyfillSupport;
-ze?.({ LitElement: D }), (Re.litElementVersions ??= []).push("4.2.2");
+E._$litElement$ = !0, E.finalized = !0, ze.litElementHydrateSupport?.({ LitElement: E });
+var Be = ze.litElementPolyfillSupport;
+Be?.({ LitElement: E }), (ze.litElementVersions ??= []).push("4.2.2");
 //#endregion
 //#region node_modules/@lit/reactive-element/decorators/custom-element.js
-var Be = (e) => (t, n) => {
+var Ve = (e) => (t, n) => {
 	n === void 0 ? customElements.define(e, t) : n.addInitializer(() => {
 		customElements.define(e, t);
 	});
-}, Ve = {
+}, He = {
 	attribute: !0,
 	type: String,
 	converter: ae,
 	reflect: !1,
 	hasChanged: oe
-}, He = (e = Ve, t, n) => {
+}, Ue = (e = He, t, n) => {
 	let { kind: r, metadata: i } = n, a = globalThis.litPropertyMetadata.get(i);
 	if (a === void 0 && globalThis.litPropertyMetadata.set(i, a = /* @__PURE__ */ new Map()), r === "setter" && ((e = Object.create(e)).wrapped = !0), a.set(n.name, e), r === "accessor") {
 		let { name: r } = n;
@@ -558,16 +558,16 @@ var Be = (e) => (t, n) => {
 	}
 	throw Error("Unsupported decorator location: " + r);
 };
-function O(e) {
-	return (t, n) => typeof n == "object" ? He(e, t, n) : ((e, t, n) => {
+function D(e) {
+	return (t, n) => typeof n == "object" ? Ue(e, t, n) : ((e, t, n) => {
 		let r = t.hasOwnProperty(n);
 		return t.constructor.createProperty(n, e), r ? Object.getOwnPropertyDescriptor(t, n) : void 0;
 	})(e, t, n);
 }
 //#endregion
 //#region node_modules/@lit/reactive-element/decorators/state.js
-function k(e) {
-	return O({
+function O(e) {
+	return D({
 		...e,
 		state: !0,
 		attribute: !1
@@ -575,17 +575,17 @@ function k(e) {
 }
 //#endregion
 //#region node_modules/lit-html/directive.js
-var Ue = {
+var We = {
 	ATTRIBUTE: 1,
 	CHILD: 2,
 	PROPERTY: 3,
 	BOOLEAN_ATTRIBUTE: 4,
 	EVENT: 5,
 	ELEMENT: 6
-}, We = (e) => (...t) => ({
+}, Ge = (e) => (...t) => ({
 	_$litDirective$: e,
 	values: t
-}), Ge = class {
+}), k = class {
 	constructor(e) {}
 	get _$AU() {
 		return this._$AM._$AU;
@@ -599,7 +599,7 @@ var Ue = {
 	update(e, t) {
 		return this.render(...t);
 	}
-}, { I: Ke } = Fe, qe = (e) => e, Je = () => document.createComment(""), A = (e, t, n) => {
+}, { I: Ke } = Ie, qe = (e) => e, Je = () => document.createComment(""), A = (e, t, n) => {
 	let r = e._$AA.parentNode, i = t === void 0 ? e._$AB : t._$AA;
 	if (n === void 0) n = new Ke(r.insertBefore(Je(), i), r.insertBefore(Je(), i), e, e.options);
 	else {
@@ -623,9 +623,9 @@ var Ue = {
 	let r = /* @__PURE__ */ new Map();
 	for (let i = t; i <= n; i++) r.set(e[i], i);
 	return r;
-}, M = We(class extends Ge {
+}, M = Ge(class extends k {
 	constructor(e) {
-		if (super(e), e.type !== Ue.CHILD) throw Error("repeat() can only be used in text expressions");
+		if (super(e), e.type !== We.CHILD) throw Error("repeat() can only be used in text expressions");
 	}
 	dt(e, t, n) {
 		let r;
@@ -670,7 +670,7 @@ var Ue = {
 		}
 		return this.ut = o, Xe(e, c), S;
 	}
-}), et = We(class extends Ge {
+}), et = Ge(class extends k {
 	constructor() {
 		super(...arguments), this.key = C;
 	}
@@ -680,9 +680,9 @@ var Ue = {
 	update(e, [t, n]) {
 		return t !== this.key && (Xe(e), this.key = t), n;
 	}
-}), tt = We(class extends Ge {
+}), tt = Ge(class extends k {
 	constructor(e) {
-		if (super(e), e.type !== Ue.ATTRIBUTE || e.name !== "class" || e.strings?.length > 2) throw Error("`classMap()` can only be used in the `class` attribute and must be the only part in the attribute.");
+		if (super(e), e.type !== We.ATTRIBUTE || e.name !== "class" || e.strings?.length > 2) throw Error("`classMap()` can only be used in the `class` attribute and must be the only part in the attribute.");
 	}
 	render(e) {
 		return " " + Object.keys(e).filter((t) => e[t]).join(" ") + " ";
@@ -701,9 +701,9 @@ var Ue = {
 		}
 		return S;
 	}
-}), nt = "important", rt = " !" + nt, N = We(class extends Ge {
+}), nt = "important", rt = " !" + nt, N = Ge(class extends k {
 	constructor(e) {
-		if (super(e), e.type !== Ue.ATTRIBUTE || e.name !== "style" || e.strings?.length > 2) throw Error("The `styleMap` directive must be used in the `style` attribute and must be the only part in the attribute.");
+		if (super(e), e.type !== We.ATTRIBUTE || e.name !== "style" || e.strings?.length > 2) throw Error("The `styleMap` directive must be used in the `style` attribute and must be the only part in the attribute.");
 	}
 	render(e) {
 		return Object.keys(e).reduce((t, n) => {
@@ -1003,7 +1003,7 @@ var ci = () => {
 }, li = (e, t) => {
 	let n = ci();
 	n && n.bind(e, t);
-}, ui = We(class extends Ge {
+}, ui = Ge(class extends k {
 	update(e, [t]) {
 		return li(e.element, t), S;
 	}
@@ -6124,6 +6124,23 @@ var W = (e, t) => {
     gap: 8px;
     padding: 0;
   }
+  .inline-entity-sections {
+    display: grid;
+    gap: 16px;
+  }
+  .inline-entity-section {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+  }
+  .inline-section-title {
+    color: var(--secondary-text-color);
+    font-size: 0.85rem;
+    font-weight: 600;
+    line-height: 1.25;
+    padding: 0 4px 6px;
+    border-bottom: 1px solid var(--divider-color);
+  }
   .inline-entity-card {
     min-width: 0;
   }
@@ -6330,7 +6347,7 @@ function K(e, t, n, r) {
 }
 //#endregion
 //#region src/popup-dialog.ts
-var q = class extends D {
+var q = class extends E {
 	constructor(...e) {
 		super(...e), this.open = !1, this.title = "", this.content = "", this._showAll = !1, this._cardEls = /* @__PURE__ */ new Map(), this._lastEntityIds = [], this._activeEntities = [], this._allEntities = [], this._currentEntitiesCache = [], this._opener = null, this._handleMoreInfo = (e) => {
 			if (this._opener) {
@@ -6851,8 +6868,8 @@ var q = class extends D {
   `;
 	}
 };
-K([O({ type: Boolean })], q.prototype, "open", void 0), K([O({ type: String })], q.prototype, "title", void 0), K([O({ type: String })], q.prototype, "selectedDomain", void 0), K([O({ type: String })], q.prototype, "selectedDeviceClass", void 0), K([O({ type: String })], q.prototype, "content", void 0), K([O({ attribute: !1 })], q.prototype, "card", void 0), K([k()], q.prototype, "_showAll", void 0), K([k()], q.prototype, "selectedGroup", void 0), K([k()], q.prototype, "_entities", void 0), customElements.define("status-card-delayed-popup", q);
-var J = class extends D {
+K([D({ type: Boolean })], q.prototype, "open", void 0), K([D({ type: String })], q.prototype, "title", void 0), K([D({ type: String })], q.prototype, "selectedDomain", void 0), K([D({ type: String })], q.prototype, "selectedDeviceClass", void 0), K([D({ type: String })], q.prototype, "content", void 0), K([D({ attribute: !1 })], q.prototype, "card", void 0), K([O()], q.prototype, "_showAll", void 0), K([O()], q.prototype, "selectedGroup", void 0), K([O()], q.prototype, "_entities", void 0), customElements.define("status-card-delayed-popup", q);
+var J = class extends E {
 	constructor(...e) {
 		super(...e), this.open = !1, this._historyPushed = !1, this._onPopState = () => {
 			this.open && !window.history.state?.statusCardDelayedPopupConfirm && (this._historyPushed = !1, this.open = !1);
@@ -6924,7 +6941,7 @@ var J = class extends D {
     `;
 	}
 };
-K([O({ type: Boolean })], J.prototype, "open", void 0), K([O({ attribute: !1 })], J.prototype, "hass", void 0), K([O({ attribute: !1 })], J.prototype, "card", void 0), K([O({ type: String })], J.prototype, "selectedDomain", void 0), K([O({ type: String })], J.prototype, "selectedDeviceClass", void 0), customElements.define("status-card-delayed-popup-confirmation", J);
+K([D({ type: Boolean })], J.prototype, "open", void 0), K([D({ attribute: !1 })], J.prototype, "hass", void 0), K([D({ attribute: !1 })], J.prototype, "card", void 0), K([D({ type: String })], J.prototype, "selectedDomain", void 0), K([D({ type: String })], J.prototype, "selectedDeviceClass", void 0), customElements.define("status-card-delayed-popup-confirmation", J);
 //#endregion
 //#region src/card-items.ts
 var ga = (e, t, n, r) => r ? [] : Object.values(e).filter((e) => e.entity_id.startsWith("person.") && !t.includes(e.entity_id) && !e.labels?.some((e) => n.includes(e)) && !e.hidden).map((e) => e.entity_id).reverse(), _a = (e, t) => e.map((e) => t[e]).filter((e) => !!e), va = (e, t, n) => {
@@ -7128,12 +7145,12 @@ function ka(e, t, n, r) {
 }
 //#endregion
 //#region src/card.ts
-var X, Aa = (e) => e === "standard" ? "" : `${e}-mode`, ja = ([e, t], [n, r]) => e === n && e.every((e) => t[e] === r[e]), Z = class extends D {
+var X, Aa = (e) => e === "standard" ? "" : `${e}-mode`, ja = ([e, t], [n, r]) => e === n && e.every((e) => t[e] === r[e]), Z = class extends E {
 	static {
 		X = this;
 	}
 	constructor(...e) {
-		super(...e), this.selectedDomain = null, this.selectedDeviceClass = null, this.hiddenEntities = [], this.hiddenLabels = [], this.hiddenAreas = [], this.hide_person = !1, this.hide_content_name = !1, this.list_mode = !1, this.design = "standard", this.no_background = !1, this.badge_color = "", this.badge_text_color = "", this.selectedGroup = null, this._recentActivityTick = 0, this._shouldHideCard = !1, this.__registryEntities = [], this.__registryDevices = [], this.__registryAreas = [], this.labels = [], this.__registryFetchInProgress = !1, this._parsedGlobalCss = {}, this._parsedGlobalIconCss = {}, this._parsedGlobalCardCss = {}, this._parsedGlobalNameCss = {}, this._parsedGlobalStateCss = {}, this._inlineCardElementCache = /* @__PURE__ */ new Map(), this._visibleEntityOrder = [], this._tilePositions = /* @__PURE__ */ new Map(), this._exitingTiles = [], this._tileAnimationPending = !1, this._tileAnimations = /* @__PURE__ */ new WeakMap(), this._computeIncludedIdsMemo = P((e, t, n, r, i, a, o, s, c) => gi(e || {}, t || {}, n || {}, {
+		super(...e), this.selectedDomain = null, this.selectedDeviceClass = null, this.hiddenEntities = [], this.hiddenLabels = [], this.hiddenAreas = [], this.hide_person = !1, this.hide_content_name = !1, this.list_mode = !1, this.design = "standard", this.no_background = !1, this.badge_color = "", this.badge_text_color = "", this.selectedGroup = null, this._recentActivityTick = 0, this._shouldHideCard = !1, this.__registryEntities = [], this.__registryDevices = [], this.__registryAreas = [], this.labels = [], this.__registryFetchInProgress = !1, this._parsedGlobalCss = {}, this._parsedGlobalIconCss = {}, this._parsedGlobalCardCss = {}, this._parsedGlobalNameCss = {}, this._parsedGlobalStateCss = {}, this._inlineCardElementCache = /* @__PURE__ */ new Map(), this._tilePositions = /* @__PURE__ */ new Map(), this._exitingTiles = [], this._tileAnimationPending = !1, this._tileAnimations = /* @__PURE__ */ new WeakMap(), this._computeIncludedIdsMemo = P((e, t, n, r, i, a, o, s, c) => gi(e || {}, t || {}, n || {}, {
 			area: r,
 			floor: i,
 			label: a,
@@ -7362,10 +7379,9 @@ var X, Aa = (e) => e === "standard" ? "" : `${e}-mode`, ja = ([e, t], [n, r]) =>
 	}
 	setConfig(e) {
 		if (!e) throw Error("Invalid configuration.");
-		let t = this._config?.sort_entities === !0;
-		this._config = e, (!e.sort_entities || !t) && (this._visibleEntityOrder = []), this.hide_person = e.hide_person !== void 0 && e.hide_person, this.hide_content_name = e.hide_content_name !== void 0 && e.hide_content_name, this.list_mode = e.list_mode !== void 0 && e.list_mode, this.design = e.display_mode || (e.badge_mode ? "badge" : "standard"), this.no_background = !!e.no_background, this.badge_color = e.badge_color || "", this.badge_text_color = e.badge_text_color || "", this.hiddenEntities = e.hidden_entities || [], this.hiddenLabels = e.hidden_labels || [], this.hiddenAreas = e.hidden_areas || [];
-		let n = this._config.styles ?? {};
-		this._parsedGlobalCardCss = W(n.card), this._parsedGlobalCss = W(n.button), this._parsedGlobalIconCss = W(n.icon), this._parsedGlobalNameCss = W(n.name), this._parsedGlobalStateCss = W(n.state);
+		this._config = e, this.hide_person = e.hide_person !== void 0 && e.hide_person, this.hide_content_name = e.hide_content_name !== void 0 && e.hide_content_name, this.list_mode = e.list_mode !== void 0 && e.list_mode, this.design = e.display_mode || (e.badge_mode ? "badge" : "standard"), this.no_background = !!e.no_background, this.badge_color = e.badge_color || "", this.badge_text_color = e.badge_text_color || "", this.hiddenEntities = e.hidden_entities || [], this.hiddenLabels = e.hidden_labels || [], this.hiddenAreas = e.hidden_areas || [];
+		let t = this._config.styles ?? {};
+		this._parsedGlobalCardCss = W(t.card), this._parsedGlobalCss = W(t.button), this._parsedGlobalIconCss = W(t.icon), this._parsedGlobalNameCss = W(t.name), this._parsedGlobalStateCss = W(t.state);
 	}
 	_showPopup(e, t, n) {
 		e.dispatchEvent(new CustomEvent("show-dialog", {
@@ -7792,16 +7808,61 @@ var X, Aa = (e) => e === "standard" ? "" : `${e}-mode`, ja = ([e, t], [n, r]) =>
 		}
 		return n;
 	}
-	_sortInlineEntitiesByActivation(e) {
-		if (this._config.sort_entities !== !0) return this._visibleEntityOrder = [], e;
-		let t = new Map(e.map((e) => [e.entity.entity_id, e])), n = new Set(t.keys());
-		this._visibleEntityOrder = this._visibleEntityOrder.filter((e) => n.has(e));
-		let r = new Set(this._visibleEntityOrder);
-		for (let t of e) {
-			let e = t.entity.entity_id;
-			r.has(e) || (this._visibleEntityOrder.push(e), r.add(e));
+	_getInlineSectionTitle(e) {
+		if (e.type === "extra") return e.name;
+		if (e.type === "group") return e.group_id;
+		let t = e.type === "deviceClass" ? e.deviceClass : void 0;
+		return ia(this._config, e.domain, t) || this.computeLabel({ name: t || e.domain });
+	}
+	_renderInlineEntities(e, t) {
+		let n = /* @__PURE__ */ new Map();
+		for (let e of t) {
+			let t = n.get(e.contextKey) || [];
+			t.push(e), n.set(e.contextKey, t);
 		}
-		return this._visibleEntityOrder.map((e) => t.get(e)).filter((e) => e !== void 0);
+		let r = [], i = n.get("person");
+		i?.length && r.push({
+			key: "person",
+			title: this.computeLabel({ name: "person" }),
+			entities: i
+		});
+		for (let t of e) {
+			let e = t.type === "extra" ? t.panel : t.type === "group" ? t.group_id : R(t.domain, t.type === "deviceClass" ? t.deviceClass : void 0), i = n.get(e);
+			i?.length && r.push({
+				key: e,
+				title: this._getInlineSectionTitle(t),
+				entities: i
+			});
+		}
+		return x`
+      <div
+        class="inline-entity-sections"
+        style=${N(this._parsedGlobalCardCss)}
+      >
+        ${M(r, (e) => e.key, (e) => x`
+            <section class="inline-entity-section">
+              <div class="inline-section-title">${e.title}</div>
+              <div class="inline-entity-grid">
+                ${M(e.entities, ({ entity: e }) => e.entity_id, ({ entity: e, contextKey: t }) => x`
+                    <div
+                      class="inline-entity-card"
+                      data-animation-key=${`entity:${e.entity_id}`}
+                    >
+                      ${this._getOrCreateInlineCard(t, e)}
+                    </div>
+                  `)}
+              </div>
+            </section>
+          `)}
+      </div>
+    `;
+	}
+	_sortInlineEntitiesByActivation(e) {
+		return this._config.sort_entities === !0 ? e.map((e, t) => ({
+			item: e,
+			index: t,
+			activatedAt: Date.parse(e.entity.last_changed)
+		})).sort((e, t) => (Number.isFinite(e.activatedAt) ? e.activatedAt : 0) - (Number.isFinite(t.activatedAt) ? t.activatedAt : 0) || e.index - t.index).map(({ item: e }) => e) : e;
 	}
 	renderItemTab(e) {
 		let t = e.domain, n = e.deviceClass, r = this._isOn(t, n), i = this._currentlyActiveEntities(t, n), a = this._totalEntities(t, n), o = this._shouldShowTotalEntities(t, n) ? a : r;
@@ -7907,21 +7968,7 @@ var X, Aa = (e) => e === "standard" ? "" : `${e}-mode`, ja = ([e, t], [n, r]) =>
 		let e = this.getExtraItems(), t = this.getGroupItems(), n = this.getDomainItems(), r = this.getDeviceClassItems(), i = this._computeSortedEntities(e, t, n, r), a = this.getPersonItems(), o = this._sortInlineEntitiesByActivation(this._getInlineEntities(a, i));
 		this._config.ungroup_entities ? this._pruneInlineCardCache(o) : this._inlineCardElementCache.size && this._inlineCardElementCache.clear();
 		let s = x``;
-		return this._shouldHideCard || (s = this._config.ungroup_entities ? x`
-            <div
-              class="inline-entity-grid"
-              style=${N(this._parsedGlobalCardCss)}
-            >
-              ${M(o, ({ entity: e }) => e.entity_id, ({ entity: e, contextKey: t }) => x`
-                  <div
-                    class="inline-entity-card"
-                    data-animation-key=${`entity:${e.entity_id}`}
-                  >
-                    ${this._getOrCreateInlineCard(t, e)}
-                  </div>
-                `)}
-            </div>
-          ` : this._renderGroupedEntities(a, i)), x`
+		return this._shouldHideCard || (s = this._config.ungroup_entities ? this._renderInlineEntities(i, o) : this._renderGroupedEntities(a, i)), x`
       <div class="tile-animation-layer" aria-hidden="true"></div>
       ${s}
     `;
@@ -7936,7 +7983,7 @@ var X, Aa = (e) => e === "standard" ? "" : `${e}-mode`, ja = ([e, t], [n, r]) =>
 		return {};
 	}
 };
-K([O({ type: Object })], Z.prototype, "_config", void 0), K([k()], Z.prototype, "selectedDomain", void 0), K([k()], Z.prototype, "selectedDeviceClass", void 0), K([k()], Z.prototype, "hiddenEntities", void 0), K([k()], Z.prototype, "hiddenLabels", void 0), K([k()], Z.prototype, "hiddenAreas", void 0), K([k()], Z.prototype, "hide_person", void 0), K([k()], Z.prototype, "hide_content_name", void 0), K([k()], Z.prototype, "list_mode", void 0), K([k()], Z.prototype, "design", void 0), K([k()], Z.prototype, "no_background", void 0), K([k()], Z.prototype, "badge_color", void 0), K([k()], Z.prototype, "badge_text_color", void 0), K([k()], Z.prototype, "selectedGroup", void 0), K([k()], Z.prototype, "_recentActivityTick", void 0), K([O({ attribute: !1 })], Z.prototype, "hass", void 0), K([k()], Z.prototype, "_shouldHideCard", void 0), K([k()], Z.prototype, "__registryEntities", void 0), K([k()], Z.prototype, "__registryDevices", void 0), K([k()], Z.prototype, "__registryAreas", void 0), K([k()], Z.prototype, "labels", void 0), K([k()], Z.prototype, "_parsedGlobalCss", void 0), K([k()], Z.prototype, "_parsedGlobalIconCss", void 0), K([k()], Z.prototype, "_parsedGlobalCardCss", void 0), K([k()], Z.prototype, "_parsedGlobalNameCss", void 0), K([k()], Z.prototype, "_parsedGlobalStateCss", void 0), Z = X = K([Be("status-card-delayed")], Z);
+K([D({ type: Object })], Z.prototype, "_config", void 0), K([O()], Z.prototype, "selectedDomain", void 0), K([O()], Z.prototype, "selectedDeviceClass", void 0), K([O()], Z.prototype, "hiddenEntities", void 0), K([O()], Z.prototype, "hiddenLabels", void 0), K([O()], Z.prototype, "hiddenAreas", void 0), K([O()], Z.prototype, "hide_person", void 0), K([O()], Z.prototype, "hide_content_name", void 0), K([O()], Z.prototype, "list_mode", void 0), K([O()], Z.prototype, "design", void 0), K([O()], Z.prototype, "no_background", void 0), K([O()], Z.prototype, "badge_color", void 0), K([O()], Z.prototype, "badge_text_color", void 0), K([O()], Z.prototype, "selectedGroup", void 0), K([O()], Z.prototype, "_recentActivityTick", void 0), K([D({ attribute: !1 })], Z.prototype, "hass", void 0), K([O()], Z.prototype, "_shouldHideCard", void 0), K([O()], Z.prototype, "__registryEntities", void 0), K([O()], Z.prototype, "__registryDevices", void 0), K([O()], Z.prototype, "__registryAreas", void 0), K([O()], Z.prototype, "labels", void 0), K([O()], Z.prototype, "_parsedGlobalCss", void 0), K([O()], Z.prototype, "_parsedGlobalIconCss", void 0), K([O()], Z.prototype, "_parsedGlobalCardCss", void 0), K([O()], Z.prototype, "_parsedGlobalNameCss", void 0), K([O()], Z.prototype, "_parsedGlobalStateCss", void 0), Z = X = K([Ve("status-card-delayed")], Z);
 //#endregion
 //#region src/style-guide.ts
 var Ma = {
@@ -8381,7 +8428,7 @@ var za = (e, t, n, r, i) => e === "domain" ? [
 ], Ba = () => [{
 	name: "styles",
 	selector: { object: {} }
-}], Va = "button:\n  --mdc-icon-size: 24px;\n  border: none;\n  color: green;\nicon:\n  animation: spin 2s linear infinite;\n  --mdc-icon-size: 40px;\n  color: var(--primary-color);\nname:\n  font-size: 15px;", Ha = "\ncount:  # optional, highest reached min wins\n  - min: 3\n    icon: \"color: orange;\"\n  - min: 6\n    icon: \"color: red; animation: pulse 1s infinite;\"", Q = class extends D {
+}], Va = "button:\n  --mdc-icon-size: 24px;\n  border: none;\n  color: green;\nicon:\n  animation: spin 2s linear infinite;\n  --mdc-icon-size: 40px;\n  color: var(--primary-color);\nname:\n  font-size: 15px;", Ha = "\ncount:  # optional, highest reached min wins\n  - min: 3\n    icon: \"color: orange;\"\n  - min: 6\n    icon: \"color: red; animation: pulse 1s infinite;\"", Q = class extends E {
 	constructor(...e) {
 		super(...e), this.isGroup = !1, this._activeTab = "appearance", this._computeLabel = (e) => Ki(this.hass, e);
 	}
@@ -8564,10 +8611,10 @@ var za = (e, t, n, r, i) => e === "domain" ? [
     `;
 	}
 };
-K([O({ attribute: !1 })], Q.prototype, "config", void 0), K([O({ attribute: !1 })], Q.prototype, "hass", void 0), K([O({ attribute: !1 })], Q.prototype, "lovelace", void 0), K([O({ type: Number })], Q.prototype, "index", void 0), K([O()], Q.prototype, "getSchema", void 0), K([O({ type: Boolean })], Q.prototype, "isGroup", void 0), K([k()], Q.prototype, "_config", void 0), K([k()], Q.prototype, "_activeTab", void 0), Q = K([Be("status-card-delayed-item-editor")], Q);
+K([D({ attribute: !1 })], Q.prototype, "config", void 0), K([D({ attribute: !1 })], Q.prototype, "hass", void 0), K([D({ attribute: !1 })], Q.prototype, "lovelace", void 0), K([D({ type: Number })], Q.prototype, "index", void 0), K([D()], Q.prototype, "getSchema", void 0), K([D({ type: Boolean })], Q.prototype, "isGroup", void 0), K([O()], Q.prototype, "_config", void 0), K([O()], Q.prototype, "_activeTab", void 0), Q = K([Ve("status-card-delayed-item-editor")], Q);
 //#endregion
 //#region src/items-editor.ts
-var Ua = class extends D {
+var Ua = class extends E {
 	constructor(...e) {
 		super(...e), this.SelectOptions = [], this._entityKeys = /* @__PURE__ */ new WeakMap();
 	}
@@ -8691,7 +8738,7 @@ var Ua = class extends D {
     `;
 	}
 };
-K([O({ attribute: !1 })], Ua.prototype, "hass", void 0), K([O({ type: Array })], Ua.prototype, "SelectOptions", void 0), K([O({ attribute: !1 })], Ua.prototype, "customization", void 0), Ua = K([Be("status-card-delayed-items-editor")], Ua);
+K([D({ attribute: !1 })], Ua.prototype, "hass", void 0), K([D({ type: Array })], Ua.prototype, "SelectOptions", void 0), K([D({ attribute: !1 })], Ua.prototype, "customization", void 0), Ua = K([Ve("status-card-delayed-items-editor")], Ua);
 //#endregion
 //#region src/editor.ts
 var Wa = "card:\n  background-color: rgba(255, 0, 0, 0.1);\n  border: none;\nicon:\n  animation: spin 2s linear infinite;\n  --mdc-icon-size: 40px;\n  color: var(--primary-color);\nname:\n  font-size: 15px;", Ga = [...ji, "person"];
@@ -8699,7 +8746,7 @@ function Ka(e, t) {
 	let { [t]: n, ...r } = e;
 	return r;
 }
-var $ = class extends D {
+var $ = class extends E {
 	constructor(...e) {
 		super(...e), this._subElementEditorDomain = void 0, this._subElementEditorEntity = void 0, this.rulesets = [{
 			group_id: "",
@@ -9547,7 +9594,7 @@ var $ = class extends D {
     `;
 	}
 };
-K([O({ attribute: !1 })], $.prototype, "hass", void 0), K([O({ attribute: !1 })], $.prototype, "lovelace", void 0), K([O({ type: Object })], $.prototype, "_config", void 0), K([k()], $.prototype, "_subElementEditorDomain", void 0), K([k()], $.prototype, "_subElementEditorEntity", void 0), K([k()], $.prototype, "rulesets", void 0), K([k()], $.prototype, "_activeTab", void 0), $ = K([Be("status-card-delayed-editor")], $), console.info(`%c STATUS-CARD-DELAYED %c v${e} `, "color: steelblue; background: black; font-weight: bold;", "color: white ; background: dimgray; font-weight: bold;"), window.customCards = window.customCards || [], window.customCards.some((e) => e.type === "status-card-delayed") || window.customCards.push({
+K([D({ attribute: !1 })], $.prototype, "hass", void 0), K([D({ attribute: !1 })], $.prototype, "lovelace", void 0), K([D({ type: Object })], $.prototype, "_config", void 0), K([O()], $.prototype, "_subElementEditorDomain", void 0), K([O()], $.prototype, "_subElementEditorEntity", void 0), K([O()], $.prototype, "rulesets", void 0), K([O()], $.prototype, "_activeTab", void 0), $ = K([Ve("status-card-delayed-editor")], $), console.info(`%c STATUS-CARD-DELAYED %c v${e} `, "color: steelblue; background: black; font-weight: bold;", "color: white ; background: dimgray; font-weight: bold;"), window.customCards = window.customCards || [], window.customCards.some((e) => e.type === "status-card-delayed") || window.customCards.push({
 	type: "status-card-delayed",
 	name: "Status Card Delayed",
 	preview: !0,

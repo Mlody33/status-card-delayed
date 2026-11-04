@@ -156,3 +156,17 @@ test('editors translate legacy badge settings to display mode', async () => {
   assert.equal(item._config.display_mode, 'badge');
   item.remove();
 });
+
+test('remote inline sections preserve domain order and sort entities by activation time', async () => {
+  const states = {
+    'light.a': entity('light.a', 'on', '2026-01-02T00:00:00Z'),
+    'light.b': entity('light.b', 'on', '2026-01-01T00:00:00Z'),
+    'switch.a': entity('switch.a', 'on'),
+  };
+  const card = await mount({ ungroup_entities: true, sort_entities: true, content: ['switch', 'light'], customization: [{ type: 'light', name: 'Lights' }, { type: 'switch', name: 'Switches' }] }, states);
+  const sections = [...card.shadowRoot.querySelectorAll('.inline-entity-section')];
+  assert.equal(sections.length, 2);
+  assert.deepEqual(sections.map(section => section.querySelector('.inline-section-title').textContent.trim()), ['Switches', 'Lights']);
+  assert.deepEqual([...sections[1].querySelectorAll('.inline-entity-card')].map(el => el.dataset.animationKey), ['entity:light.b', 'entity:light.a']);
+  card.remove();
+});

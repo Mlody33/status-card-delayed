@@ -313,6 +313,23 @@ export const cardStyles = css`
     gap: 8px;
     padding: 0;
   }
+  .inline-entity-sections {
+    display: grid;
+    gap: 16px;
+  }
+  .inline-entity-section {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+  }
+  .inline-section-title {
+    color: var(--secondary-text-color);
+    font-size: 0.85rem;
+    font-weight: 600;
+    line-height: 1.25;
+    padding: 0 4px 6px;
+    border-bottom: 1px solid var(--divider-color);
+  }
   .inline-entity-card {
     min-width: 0;
   }
